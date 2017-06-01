@@ -1,0 +1,166 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" tools:context="navdev.gpstrack.fragment.MapFragment"
+    xmlns:fab="http://schemas.android.com/apk/res-auto">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:id="@+id/map" tools:context=".MapsActivity"
+        android:name="com.google.android.gms.maps.SupportMapFragment" />
+
+    <LinearLayout
+        android:id="@+id/ll_configruta"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp"
+        android:layout_margin="20dp"
+        android:layout_gravity="center_horizontal|top"
+        android:elevation="5dp"
+        android:background="@android:color/background_light">
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12dp"
+            android:textColor="@color/defaultlighttext"
+            android:text="@string/ruta"/>
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14dp"
+            android:textColor="@color/defaulttext"
+            android:id="@+id/route_name"
+            android:text="@string/sinruta"/>
+    </LinearLayout>
+
+
+    <com.melnykov.fab.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|top"
+        android:layout_margin="5dp"
+        fab:fab_type="mini"
+        android:src="@drawable/ic_pencil_white_18dp"
+        fab:fab_colorNormal="@color/bluedefault"
+        fab:fab_colorPressed="@color/bluedarkdefault"
+        fab:fab_colorRipple="@color/blueaccent" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bluedefault"
+        android:textColor="@android:color/white"
+        android:textSize="17sp"
+        android:gravity="center"
+        android:text="@string/comenzar"
+        android:clickable="true"
+        android:id="@+id/btncomenzar"
+        android:padding="10dp"
+        android:layout_gravity="center_horizontal|bottom" />
+
+    <LinearLayout
+        android:id="@+id/ll_playruta"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="@id/ll_configruta"
+        android:padding="12dp"
+        android:layout_margin="20dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:elevation="5dp"
+        android:background="@android:color/background_light">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/defaultlighttext"
+                android:text="@string/distancia"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/defaulttext"
+                android:id="@+id/tv_distancia"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="1dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_height="fill_parent"
+            android:background="@color/defaultlighttext"/>
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/labeltiempo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/defaultlighttext"
+                android:text="@string/tiempo"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/defaulttext"
+                android:id="@+id/tv_tiempo"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="1dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_height="fill_parent"
+            android:background="@color/defaultlighttext"/>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/defaultlighttext"
+                android:text="@string/velocidad"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/defaulttext"
+                android:id="@+id/tv_velocidad"
+                android:gravity="center"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <com.melnykov.fab.FloatingActionButton
+        android:id="@+id/fabpause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|bottom"
+        android:layout_margin="5dp"
+        fab:fab_type="mini"
+        android:src="@drawable/ic_stop_white_24dp"
+        fab:fab_colorNormal="@color/bluedefault"
+        fab:fab_colorPressed="@color/bluedarkdefault"
+        fab:fab_colorRipple="@color/blueaccent"
+        android:visibility="gone"/>
+</FrameLayout>

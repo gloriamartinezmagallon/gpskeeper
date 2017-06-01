@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GPS Keeper</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="title_section1">Iniciar actividad</string>
+    <string name="title_section2">Mis rutas</string>
+    <string name="title_section3">Mis actividades</string>
+    <string name="title_section4">Configuración</string>
+    <string name="navigation_drawer_open">Abrir el menú</string>
+    <string name="navigation_drawer_close">Cerrar el menú</string>
+    <string name="config_fragment">Configuración</string>
+    <string name="ruta">Ruta</string>
+    <string name="sinruta">Sin ruta seleccionada</string>
+    <string name="emptylistroutes">Sin rutas, para añadir una ruta pulse el botón +.</string>
+    <string name="emptylistactivities">Sin actividades, realiza alguna actividad y al finalizar las podrás consultar aquí.</string>
+    <string name="seleccionarfichero">Seleccionar fichero.</string>
+    <string name="descargardeinternet">Indicar dirección web.</string>
+    <string name="indiqueurl">Indice la dirección web antes de pulsar el botón.</string>
+    <string name="descargando">Descargando ruta</string>
+    <string name="espere">Espere por favor</string>
+    <string name="buscandoruas">Buscando rutas</string>
+    <string name="rutasencontradas">Seleccione la ruta a importar </string>
+    <string name="rutasnoencontradas">No se han encontrado rutas, recuerde que deben ser ficheros .kml</string>
+    <string name="si">Aceptar</string>
+    <string name="no">Cancelar</string>
+    <string name="distancia">Distancia </string>
+    <string name="rutaguardada">Ruta guardada correctamente</string>
+    <string name="comenzar">Comenzar actividad</string>
+    <string name="velocidad">Velocidad </string>
+    <string name="tiempo">Tiempo </string>
+    <string name="tiempopausa">En pausa</string>
+    <string name="mindistanciaaruta">Lo sentimos, para poder seguir la ruta debe estar a menos de 1km de ella.</string>
+    <string name="filelabel">Fichero GPS Keeper</string>
+    <string name="borrarruta">Eliminar ruta</string>
+    <string name="borrarrutaconfirm">¿Estás seguro de que quieres eliminar la ruta? Recuerda que se eliminarán todas las actividades de dicha ruta.</string>
+    <string name="rutaborrada">Ruta borrada</string>
+    <string name="confirmterminaruta">¿Estás seguro de que has terminado la actividad? Recuerda que si es una pausa, no debes parar la actividad.</string>
+    <string name="rutainiciada">Con la actividad en marcha, no se puede navegar por la aplicación</string>
+    <string name="confirmarborraractividad">¿Estás seguro de que quieres eliminar la actividad?</string>
+    <string name="definirumbraldistancia">La aplicación le avisará cuando se salga de la ruta. Indique la distancia a la que quieres ser avisado, en metros.</string>
+    <string name="definirnumavisos">Indica el número de avisos que quieres recibir.</string>
+    <string name="guardar">Guardar</string>
+    <string name="guardarok">Configuración guardada correctamente</string>
+
+</resources>

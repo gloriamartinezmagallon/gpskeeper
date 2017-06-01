@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GPS Keeper</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_section1">Start activity</string>
+    <string name="title_section2">My routes</string>
+    <string name="title_section3">My activities</string>
+    <string name="title_section4"></string>
+    <string name="navigation_drawer_open">Open menu</string>
+    <string name="navigation_drawer_close">Close menu</string>
+    <string name="config_fragment">Configuration</string>
+    <string name="ruta">Route</string>
+    <string name="sinruta">Without selected route</string>
+    <string name="emptylistroutes">Without routes, to add one tap the + button</string>
+    <string name="emptylistactivities">Without activities, make a activity and at the end you can check here</string>
+    <string name="seleccionarfichero">Select file</string>
+    <string name="descargardeinternet">Indicate the web</string>
+    <string name="indiqueurl">Indicate the web before to tap the button.</string>
+    <string name="descargando">Downloading route</string>
+    <string name="espere">Wait please</string>
+    <string name="buscandoruas">Searching routes</string>
+    <string name="rutasencontradas">Select a route to import</string>
+    <string name="rutasnoencontradas">No routes found, remember to be .kml files</string>
+    <string name="si">Acept</string>
+    <string name="no">Cancel</string>
+    <string name="distancia">Distance</string>
+    <string name="rutaguardada">Route save successfully</string>
+    <string name="comenzar">Start activity</string>
+    <string name="velocidad">Speed</string>
+    <string name="tiempo">Time</string>
+    <string name="tiempopausa">Pause</string>
+    <string name="mindistanciaaruta">Sorry, to start activity you should be whitin 1km of it.</string>
+    <string name="filelabel">File GPS Keeper</string>
+    <string name="borrarruta">Delete route</string>
+    <string name="borrarrutaconfirm">Are you sure you want to delete the route? Remember that all activities of the route will be deleted.</string>
+    <string name="rutaborrada">Deleted route</string>
+    <string name="confirmterminaruta">Are you sure you finish the activity? Remember that if you pause, you should stop the activity.</string>
+    <string name="rutainiciada">With the activity going, you can not navigate the application</string>
+    <string name="confirmarborraractividad">Are you sure you want to delete the activity?</string>
+    <string name="definirumbraldistancia">The application notifies you when you leave the route. Enter the distance you want to be warned, in meters.</string>
+    <string name="definirnumavisos">Indicates the number of messages you want to receive.</string>
+    <string name="guardar">Save</string>
+    <string name="guardarok">Settings saved successfully</string>
+
+</resources>

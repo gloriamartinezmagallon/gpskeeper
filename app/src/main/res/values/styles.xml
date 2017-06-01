@@ -1,0 +1,22 @@
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- customize the color palette -->
+        <item name="colorPrimary">@color/bluedefault</item>
+        <item name="colorPrimaryDark">@color/bluedarkdefault</item>
+        <item name="colorAccent">@color/blueaccent</item>
+        <item name="android:textColorPrimary">@color/defaulttext</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="@style/AppTheme">
+        <!--<item name="windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>-->
+    </style>
+    <style name="AppTheme.YesActionBar" parent="@style/AppTheme">
+        <!--<item name="windowActionBar">true</item>
+        <item name="android:windowNoTitle">false</item>-->
+    </style>
+
+
+
+</resources>

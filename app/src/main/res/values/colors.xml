@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bluedefault">#FF00796B</color>
+    <color name="bluedarkdefault">#FF004D40</color>
+    <color name="blueaccent">#FF009688</color>
+    <color name="defaulttext">#FF333333</color>
+    <color name="defaultlighttext">#FFAAAAAA</color>
+    <color name="defaultbg">#fff4f5f6</color>
+</resources>
