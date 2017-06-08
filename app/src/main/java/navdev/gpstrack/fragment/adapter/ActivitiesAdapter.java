@@ -56,7 +56,7 @@ public class ActivitiesAdapter extends ArrayAdapter<Activity> {
             String distancia = getContext().getResources().getString(R.string.distancia)+": "+String.format("%.3f",Double.parseDouble(p.getDistance())/1000)+" km";
 
 
-            String tiempo = getContext().getResources().getString(R.string.tiempo)+": "+((MainActivity) getContext()).timeTostring(Long.parseLong(p.getTime()));
+            String tiempo = getContext().getResources().getString(R.string.tiempo)+": "+timeTostring(p.getTime());
 
             tt1.setText(p.getRoute(getContext()).getName());
             tt2.setText( distancia+" / "+tiempo);
@@ -97,6 +97,24 @@ public class ActivitiesAdapter extends ArrayAdapter<Activity> {
         });
 
         return v;
+    }
+
+    public String timeTostring(int tiempo){
+        int seconds = (int) ((tiempo / (1000)) % 60);
+        int minutes = (int) ((tiempo / (1000 * 60)) % 60);
+        int hours = (int) ((tiempo / (1000 * 60 * 60)) % 24);
+
+        String txseconds, txminutes, txhours;
+        if (seconds<10) txseconds="0"+seconds;
+        else txseconds=seconds+"";
+
+        if (minutes<10) txminutes="0"+minutes;
+        else txminutes=minutes+"";
+
+        if (hours<10) txhours="0"+hours;
+        else txhours=hours+"";
+
+        return txhours+":"+txminutes;
     }
 
 }

@@ -1,12 +1,19 @@
 package navdev.gpstrack.fragment;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +23,13 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.melnykov.fab.FloatingActionButton;
+
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,6 +40,7 @@ import navdev.gpstrack.MainActivity;
 import navdev.gpstrack.R;
 import navdev.gpstrack.dao.GpsBBDD;
 import navdev.gpstrack.ent.Route;
+import navdev.gpstrack.utils.PermissionUtils;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,17 +55,18 @@ public class MapFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
-
-
+    static String LOGTAG = "MapFragment";
 
 
     LinearLayout ll_configruta, ll_playruta;
-    SupportMapFragment mapView;
-    GoogleMap map;
+    MapView mapView;
+    GoogleMap mMap;
     TextView btncomenzar, tv_tiempo, tv_distancia, tv_velocidad, tv_labeltiempo;
 
     FloatingActionButton fab;
@@ -103,7 +114,7 @@ public class MapFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view =  inflater.inflate(R.layout.fragment_map, container, false);
+        View view = inflater.inflate(R.layout.fragment_map, container, false);
 
         btncomenzar = (TextView) view.findViewById(R.id.btncomenzar);
         btncomenzar.setVisibility(View.GONE);
@@ -113,76 +124,86 @@ public class MapFragment extends Fragment {
         tv_tiempo = (TextView) view.findViewById(R.id.tv_tiempo);
         tv_velocidad = (TextView) view.findViewById(R.id.tv_velocidad);
 
-        tv_labeltiempo =(TextView) view.findViewById(R.id.labeltiempo);
+        tv_labeltiempo = (TextView) view.findViewById(R.id.labeltiempo);
 
 
         ll_configruta = (LinearLayout) view.findViewById(R.id.ll_configruta);
         ll_playruta = (LinearLayout) view.findViewById(R.id.ll_playruta);
 
 
-
         fab = (FloatingActionButton) view.findViewById(R.id.fab);
         fabpause = (FloatingActionButton) view.findViewById(R.id.fabpause);
 
 
-        mapView = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-        if (map == null){
-            map = mapView.getMap();
+        mapView = (MapView) view.findViewById(R.id.mapView);
 
-            map.setMyLocationEnabled(true);
-            map.getUiSettings().setMyLocationButtonEnabled(false);
-            map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-
+        mapView.onCreate(savedInstanceState);
+        /*map.setMyLocationEnabled(true);
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
 
 
-            map.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-                @Override
-                public void onMyLocationChange(Location location) {
 
-                    if (mParam2.length() == 0 || ((MainActivity) getActivity()).rutainiciada)
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
+        map.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+            @Override
+            public void onMyLocationChange(Location location) {
 
-                    if (((MainActivity) getActivity()).rutainiciada) {
-                        if (location.getSpeed() == 0)
-                            ((MainActivity) getActivity()).rutapausada = true;
-                        else ((MainActivity) getActivity()).rutapausada = false;
+                if (mParam2.length() == 0 || ((MainActivity) getActivity()).rutainiciada)
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 17));
+
+                if (((MainActivity) getActivity()).rutainiciada) {
+                    if (location.getSpeed() == 0)
+                        ((MainActivity) getActivity()).rutapausada = true;
+                    else ((MainActivity) getActivity()).rutapausada = false;
 
 
-                        if (((MainActivity) getActivity()).rutapausada) {
+                    if (((MainActivity) getActivity()).rutapausada) {
 
-                            tv_labeltiempo.setText(R.string.tiempopausa);
+                        tv_labeltiempo.setText(R.string.tiempopausa);
 
-                            tv_distancia.setText(String.format("%.3f", (double) ((MainActivity) getActivity()).distanciarecorrida / 1000) + " km");
-                            tv_velocidad.setText("0 km/h");
-                        } else {
-                            tv_labeltiempo.setText(R.string.tiempo);
+                        tv_distancia.setText(String.format("%.3f", (double) ((MainActivity) getActivity()).distanciarecorrida / 1000) + " km");
+                        tv_velocidad.setText("0 km/h");
+                    } else {
+                        tv_labeltiempo.setText(R.string.tiempo);
 
-                            tv_velocidad.setText(String.format("%.2f", (location.getSpeed() * 3.6)) + " km/h");
+                        tv_velocidad.setText(String.format("%.2f", (location.getSpeed() * 3.6)) + " km/h");
 
-                            if (((MainActivity) getActivity()).lastlocation != null) {
-                                ((MainActivity) getActivity()).distanciarecorrida += location.distanceTo(((MainActivity) getActivity()).lastlocation);
-                            }
-                            ((MainActivity) getActivity()).lastlocation = location;
-                            tv_distancia.setText(String.format("%.3f", (double) ((MainActivity) getActivity()).distanciarecorrida / 1000) + " km");
-
-                            if (((MainActivity) getActivity()).ruta.getDistanceto(location) > ((MainActivity) getActivity()).getValueInPreference("UMBRALDISTANCIA",((MainActivity) getActivity()).UMBRALDISTANCIA)) {
-                                if (((MainActivity) getActivity()).fueraderuta && ((MainActivity) getActivity()).numavisos <= ((MainActivity) getActivity()).getValueInPreference("NUMAVISOS",((MainActivity) getActivity()).NUMAVISOS))
-                                    ((Vibrator) getActivity().getSystemService(getActivity().VIBRATOR_SERVICE)).vibrate(1000);
-
-                                ((MainActivity) getActivity()).fueraderuta = true;
-                                ((MainActivity) getActivity()).numavisos++;
-                            } else {
-                                ((MainActivity) getActivity()).fueraderuta = false;
-                                ((MainActivity) getActivity()).numavisos = 0;
-                            }
+                        if (((MainActivity) getActivity()).lastlocation != null) {
+                            ((MainActivity) getActivity()).distanciarecorrida += location.distanceTo(((MainActivity) getActivity()).lastlocation);
                         }
+                        ((MainActivity) getActivity()).lastlocation = location;
+                        tv_distancia.setText(String.format("%.3f", (double) ((MainActivity) getActivity()).distanciarecorrida / 1000) + " km");
 
+                        if (((MainActivity) getActivity()).ruta.getDistanceto(location) > ((MainActivity) getActivity()).getValueInPreference("UMBRALDISTANCIA",((MainActivity) getActivity()).UMBRALDISTANCIA)) {
+                            if (((MainActivity) getActivity()).fueraderuta && ((MainActivity) getActivity()).numavisos <= ((MainActivity) getActivity()).getValueInPreference("NUMAVISOS",((MainActivity) getActivity()).NUMAVISOS))
+                                ((Vibrator) getActivity().getSystemService(getActivity().VIBRATOR_SERVICE)).vibrate(1000);
+
+                            ((MainActivity) getActivity()).fueraderuta = true;
+                            ((MainActivity) getActivity()).numavisos++;
+                        } else {
+                            ((MainActivity) getActivity()).fueraderuta = false;
+                            ((MainActivity) getActivity()).numavisos = 0;
+                        }
                     }
-                }
-            });
 
-        }
+                }
+            }
+        });*/
+        if (mMap == null) mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                Log.d(LOGTAG, "Map Ready");
+                mMap = googleMap;
+                mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                    @Override
+                    public boolean onMyLocationButtonClick() {
+                        return false;
+                    }
+                });
+                enableMyLocation();
+            }
+        });
 
 
 
@@ -202,15 +223,15 @@ public class MapFragment extends Fragment {
                                 String distance = (((MainActivity) getActivity()).distanciarecorrida + "");
 
                                 GpsBBDD gpsBBDD = new GpsBBDD(getActivity());
-                                gpsBBDD.insertActivity(route, distance, tiempotext, new Date());
+                                gpsBBDD.insertActivity(route, distance, Integer.parseInt(tiempotext), new Date());
 
-                                map.clear();
+                                mMap.clear();
 
                                 ((MainActivity) getActivity()).ruta = null;
 
                                 ((MainActivity) getActivity()).terminarRuta();
 
-                                ((MainActivity) getActivity()).irActividades();
+                               // ((MainActivity) getActivity()).irActividades();
 
                             }
 
@@ -265,8 +286,8 @@ public class MapFragment extends Fragment {
         btncomenzar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (map.getMyLocation() != null) {
-                    if (((MainActivity) getActivity()).ruta.getDistanceto(map.getMyLocation()) > 1000) {
+                if (mMap.getMyLocation() != null) {
+                    if (((MainActivity) getActivity()).ruta.getDistanceto(mMap.getMyLocation()) > 1000) {
                         Toast.makeText(getActivity(), getResources().getString(R.string.mindistanciaaruta), Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -304,6 +325,17 @@ public class MapFragment extends Fragment {
         return view;
     }
 
+    private void enableMyLocation() {
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission to access the location is missing.
+            PermissionUtils.requestPermission((AppCompatActivity) getActivity(), LOCATION_PERMISSION_REQUEST_CODE,
+                    Manifest.permission.ACCESS_FINE_LOCATION, true);
+        } else if (mMap != null) {
+            // Access to the location has been granted to the app.
+            mMap.setMyLocationEnabled(true);
+        }
+    }
     private void updateTimer(final long tiempo){
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -320,7 +352,7 @@ public class MapFragment extends Fragment {
 
     private void drawPrimaryLinePath(ArrayList<LatLng> listLocsToDraw)
     {
-        if ( map == null )
+        if ( mMap == null )
         {
             return;
         }
@@ -348,7 +380,7 @@ public class MapFragment extends Fragment {
             b.include(locRecorded);
         }
 
-        map.addPolyline(options);
+        mMap.addPolyline(options);
         System.out.println("Centrar mapa en ruta");
         final LatLngBounds bounds = b.build();
 
@@ -356,10 +388,10 @@ public class MapFragment extends Fragment {
         dpAsPixels = (int) (70*dm.density + 0.5f);
         final int dpAsPixels_f = dpAsPixels;
 
-        map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
             @Override
             public void onMapLoaded() {
-                    map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, Math.round(dpAsPixels_f)));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, Math.round(dpAsPixels_f)));
             }
         });
 

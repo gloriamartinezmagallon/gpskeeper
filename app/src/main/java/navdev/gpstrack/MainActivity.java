@@ -3,12 +3,12 @@ package navdev.gpstrack;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.w3c.dom.Document;
@@ -26,16 +26,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import navdev.gpstrack.ent.Route;
-import navdev.gpstrack.fragment.ActivitiesFragment;
-import navdev.gpstrack.fragment.ConfigurationFragment;
-import navdev.gpstrack.fragment.ImportRouteFragment;
 import navdev.gpstrack.fragment.MapFragment;
 import navdev.gpstrack.fragment.RoutedetailsFragment;
-import navdev.gpstrack.fragment.RoutesFragment;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class MainActivity extends AppCompatActivity {
 
+    static String LOGTAG ="MainActivity";
     int FRAGMENTMAP = 0;
     int FRAGMENTROUTE = 1;
     int FRAGMENTACTIVITY = 2;
@@ -87,22 +83,9 @@ public class MainActivity extends AppCompatActivity
                 Route rutaimportada = importKMLFromFile(new File(intent.getData().getPath()));
                 irDetallesruta(rutaimportada);
             }catch (Exception e){
-                System.out.println(e.getMessage());
+                Log.e(LOGTAG,e.getMessage());
                 Toast.makeText(this,"No se pudo importar la ruta",Toast.LENGTH_LONG).show();
             }
-
-        }
-
-        PackageInfo pInfo = null;
-        try {
-            pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            int version = pInfo.versionCode;
-
-            if (version != getValueInPreference("VERSION",0)){
-                //Toast.makeText(this,"IR AL TUTORIAL",Toast.LENGTH_LONG).show();
-            }
-
-        } catch (Exception e) {
         }
     }
 
@@ -147,53 +130,20 @@ public class MainActivity extends AppCompatActivity
         return txhours+":"+txminutes+":"+txseconds;
     }
 
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        if (rutainiciada){
-            Toast.makeText(this,R.string.rutainiciada,Toast.LENGTH_LONG).show();
-            return;
-        }
-        if (position == FRAGMENTMAP) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction()
-                    .add(R.id.container, MapFragment.newInstance("mapa", ""))
-                    .addToBackStack("MapFragment")
-                    .commit();
-        }else if(position == FRAGMENTROUTE){
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction()
-                    .add(R.id.container, RoutesFragment.newInstance("routes", "routes"))
-                    .addToBackStack("RoutesFragment")
-                    .commit();
-        }else if(position == FRAGMENTACTIVITY){
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction()
-                    .add(R.id.container, ActivitiesFragment.newInstance("activities", "activities"))
-                    .addToBackStack("ActivitiesFragment")
-                    .commit();
-        }else if(position == FRAGMENTCONFIGURATION){
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction()
-                    .add(R.id.container, ConfigurationFragment.newInstance("configuration","configuration"))
-                    .addToBackStack("ConfigurationFragment")
-                    .commit();
-        }
 
-    }
 
     public void initFragmentImportRoute(){
-        FragmentManager fragmentManager = getSupportFragmentManager();
+        /*FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .add(R.id.container, ImportRouteFragment.newInstance("importroutefragment", "importroutefragment"))
                 .addToBackStack("ImportRouteFragment")
-                .commit();
+                .commit();*/
     }
 
     public void irDetallesruta(Route rutaseleccionada){
         ruta = rutaseleccionada;
 
-        System.out.println("Ruta seleccionada "+ruta.getName());
+        Log.d(LOGTAG,"Ruta seleccionada "+ruta.getName());
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .add(R.id.container, RoutedetailsFragment.newInstance("RoutedetailsFragment", "RoutedetailsFragment"))
@@ -203,20 +153,14 @@ public class MainActivity extends AppCompatActivity
 
     public void irListadoRutas(){
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
+       /* FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
                 .add(R.id.container, RoutesFragment.newInstance("routes", "routes"))
                 .addToBackStack("RoutesFragment")
-                .commit();
+                .commit();*/
     }
 
-    public void irActividades(){
-       FragmentManager fragmentManager = getSupportFragmentManager();
-       fragmentManager.beginTransaction()
-               .add(R.id.container, ActivitiesFragment.newInstance("actividades", "actividades"))
-               .addToBackStack("ActivitiesFragment")
-               .commit();
-    }
+
 
     public void comenzarRuta(Route rutaseleccionada){
         ruta = rutaseleccionada;
@@ -281,9 +225,10 @@ public class MainActivity extends AppCompatActivity
     public Route importKMLFromFile(File fl){
         try {
             if (fl.isFile() == false){
-                System.out.println("No es fichero");
+                
+                Log.d(LOGTAG,"No es fichero");
             }else{
-                System.out.println(fl.canRead()+" "+fl.getName());
+                Log.d(LOGTAG,fl.canRead()+" "+fl.getName());
             }
             FileInputStream fin = new FileInputStream(fl);
 
@@ -293,7 +238,7 @@ public class MainActivity extends AppCompatActivity
 
             return ruta;
         }catch (Exception e){
-            System.out.println(e.getMessage());
+            Log.d(LOGTAG,e.getMessage());
         }
         return null;
     }

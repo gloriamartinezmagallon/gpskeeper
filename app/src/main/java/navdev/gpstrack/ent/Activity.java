@@ -16,11 +16,11 @@ public class Activity {
     Integer id;
     Integer route;
     String distance;
-    String time;
+    Integer time;
     Date adddate;
 
 
-    public Activity(Integer id, Integer route, String distance, String time, Date adddate) {
+    public Activity(Integer id, Integer route, String distance, Integer time, Date adddate) {
         this.id = id;
         this.route = route;
         this.distance = distance;
@@ -58,11 +58,11 @@ public class Activity {
         this.distance = distance;
     }
 
-    public String getTime() {
+    public Integer getTime() {
         return time;
     }
 
-    public void setTime(String time) {
+    public void setTime(Integer time) {
         this.time = time;
     }
 

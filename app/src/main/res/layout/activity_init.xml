@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" tools:context="navdev.gpstrack.fragment.MapFragment"
+    xmlns:fab="http://schemas.android.com/apk/res-auto">
+    <fragment
+        android:id="@+id/map"
+        class="com.google.android.gms.maps.SupportMapFragment"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="bottom"
+        >
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTintMode="src_in"
+        android:backgroundTint="@color/blueaccent"
+        android:textColor="@color/white"
+        android:text="@string/title_section1"
+        android:layout_margin="@dimen/cardview_default_elevation"
+        android:elevation="4dp"
+        android:textSize="20dp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTintMode="src_in"
+        android:backgroundTint="@color/bluedefault"
+        android:textColor="@color/white"
+        android:text="@string/title_section3"
+        android:layout_gravity="bottom"
+        android:layout_margin="@dimen/cardview_default_elevation"
+        android:elevation="4dp" />
+    </LinearLayout>
+</FrameLayout>

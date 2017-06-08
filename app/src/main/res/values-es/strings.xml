@@ -42,4 +42,11 @@
     <string name="guardar">Guardar</string>
     <string name="guardarok">Configuración guardada correctamente</string>
 
+
+    <!--    Permissions    -->
+    <string name="permission_rationale_location">El acceso al servicio de ubicación es necesario para mostrar su ubicación actual en el mapa.</string>
+    <string name="location_permission_denied">Esta aplicación requiere permiso de ubicación para habilitar la capa \'mi posición\'. Inténtalo de nuevo y concede acceso para usar la ubicación.\nSi el permiso se ha denegado permanentemente, se puede habilitar desde Ajustes del sistema &gt; Aplicaciones &gt; \'GPS Keeper\'.</string>
+    <string name="permission_required_toast">Location permission is required for this app.</string>
+
+    <string name="title_activity_init">GPS Keeper</string>
 </resources>

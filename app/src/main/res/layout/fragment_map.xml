@@ -6,7 +6,7 @@
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
         android:layout_height="match_parent" android:id="@+id/map" tools:context=".MapsActivity"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        android:name="navdev.gpstrack.fragment.MapFragment" />
 
     <LinearLayout
         android:id="@+id/ll_configruta"
@@ -34,17 +34,16 @@
     </LinearLayout>
 
 
-    <com.melnykov.fab.FloatingActionButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|top"
         android:layout_margin="5dp"
-        fab:fab_type="mini"
+        fab:fabSize="mini"
+        fab:rippleColor="@color/blueaccent"
         android:src="@drawable/ic_pencil_white_18dp"
-        fab:fab_colorNormal="@color/bluedefault"
-        fab:fab_colorPressed="@color/bluedarkdefault"
-        fab:fab_colorRipple="@color/blueaccent" />
+         />
 
     <TextView
         android:layout_width="fill_parent"
@@ -151,16 +150,14 @@
         </LinearLayout>
         </LinearLayout>
 
-    <com.melnykov.fab.FloatingActionButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fabpause"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|bottom"
         android:layout_margin="5dp"
-        fab:fab_type="mini"
+        fab:fabSize="mini"
+        fab:rippleColor="@color/blueaccent"
         android:src="@drawable/ic_stop_white_24dp"
-        fab:fab_colorNormal="@color/bluedefault"
-        fab:fab_colorPressed="@color/bluedarkdefault"
-        fab:fab_colorRipple="@color/blueaccent"
         android:visibility="gone"/>
 </FrameLayout>

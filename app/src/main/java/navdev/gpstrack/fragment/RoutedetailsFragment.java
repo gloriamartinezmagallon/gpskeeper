@@ -3,6 +3,7 @@ package navdev.gpstrack.fragment;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -14,11 +15,12 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.melnykov.fab.FloatingActionButton;
+
 
 import java.util.ArrayList;
 
@@ -98,17 +100,22 @@ public class RoutedetailsFragment extends Fragment {
 
         SupportMapFragment mapView = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
 
-        map = mapView.getMap();
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                ArrayList<LatLng> locs = new ArrayList<LatLng>();
+                for (int i = 0; i < ruta.getTracks().size(); i++){
+                    String[] aux = ruta.getTracks().get(i).split(",");
+                    double lng = Double.parseDouble(aux[0]);
+                    double lat = Double.parseDouble(aux[1]);
+                    System.out.println("Coords "+lat+"/"+lng);
+                    locs.add(new LatLng(lat,lng));
+                }
+                drawPrimaryLinePath(locs);
+            }
+        });
 
-        ArrayList<LatLng> locs = new ArrayList<LatLng>();
-        for (int i = 0; i < ruta.getTracks().size(); i++){
-            String[] aux = ruta.getTracks().get(i).split(",");
-            double lng = Double.parseDouble(aux[0]);
-            double lat = Double.parseDouble(aux[1]);
-            System.out.println("Coords "+lat+"/"+lng);
-            locs.add(new LatLng(lat,lng));
-        }
-        drawPrimaryLinePath(locs);
+
 
         final TextView btncomenzar = (TextView) view.findViewById(R.id.btncomenzar);
         if (ruta.getId() == 0) btncomenzar.setVisibility(View.GONE);
