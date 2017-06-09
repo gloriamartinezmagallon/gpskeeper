@@ -1,4 +1,4 @@
-package navdev.gpstrack.fragment.adapter;
+package navdev.gpstrack.adapter;
 
 
 import android.app.AlertDialog;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import navdev.gpstrack.MainActivity;
 import navdev.gpstrack.R;
 import navdev.gpstrack.dao.GpsBBDD;
 import navdev.gpstrack.ent.Activity;

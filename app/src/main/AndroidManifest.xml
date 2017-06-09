@@ -6,11 +6,15 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -32,10 +36,28 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter android:icon="@mipmap/ic_launcher" android:label="@string/filelabel" android:priority="1000">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
 
+                <data android:scheme="file"  android:host="*" android:pathPattern="/.*\\.KML" android:mimeType="*/*"  />
+                <data android:scheme="file"  android:host="*" android:pathPattern="/.*\\.kml" android:mimeType="*/*"  />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file"  android:host="*" android:pathPattern="/.*\\.KML" android:mimeType="*/*"  />
+                <data android:scheme="file"  android:host="*" android:pathPattern="/.*\\.kml" android:mimeType="*/*"  />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="*" android:pathPattern="/.*\\.KML" />
+                <data android:scheme="https" android:host="*" android:pathPattern="/.*\\.kml" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".MainActivity"
@@ -53,60 +75,10 @@
             android:label="@string/title_section2"></activity>
         <activity
             android:name=".ImportRouteActivity"
-            android:label="@string/title_section2">
-
-
-            <intent-filter
-                android:icon="@mipmap/ic_launcher"
-                android:label="@string/filelabel"
-                android:priority="1000">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.KML"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.kml"
-                    android:scheme="file" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.PICK" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.KML"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.kml"
-                    android:scheme="file" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="*"
-                    android:pathPattern="/.*\\.KML"
-                    android:scheme="http" />
-                <data
-                    android:host="*"
-                    android:pathPattern="/.*\\.kml"
-                    android:scheme="https" />
-            </intent-filter>
-        </activity>
+            android:label="@string/rutasencontradas"></activity>
+        <activity
+            android:name=".RoutedetailsActivity"
+            android:label="@string/title_section2"></activity>
     </application>
 
 </manifest>

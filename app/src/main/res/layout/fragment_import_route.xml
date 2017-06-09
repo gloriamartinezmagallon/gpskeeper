@@ -1,13 +1,19 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     xmlns:fab="http://schemas.android.com/apk/res-auto"
-    android:layout_height="match_parent" tools:context=".ImportRouteFragment"
+    android:layout_height="match_parent"
     android:background="@color/defaultbg">
+    <fragment
+        android:id="@+id/map"
+        class="com.google.android.gms.maps.SupportMapFragment"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="center">
+        android:layout_gravity="top">
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -21,67 +27,32 @@
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:textSize="14dp"
+                android:id="@+id/textFile"
                 android:textColor="@color/defaulttext"
                 android:text="@string/seleccionarfichero" />
         </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:background="@android:color/white"
-            android:layout_margin="20dp"
-            android:id="@+id/second_ll"
-            android:layout_below="@+id/first_ll"
-            android:padding="20dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:elevation="5dp">
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14dp"
-                android:textColor="@color/defaulttext"
-                android:text="@string/descargardeinternet"/>
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14dp"
-                android:text="http://kml-samples.googlecode.com/svn/trunk/kml/time/time-stamp-point.kml"
-                android:textColor="@color/defaulttext"
-                android:singleLine="true"
-                android:id="@+id/urleditext"/>
-        </LinearLayout>
-        <LinearLayout
-            android:background="@android:color/transparent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/second_ll"
-            android:orientation="horizontal"
-            android:id="@+id/third_ll"/>
-
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/first_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|right"
             fab:fabSize="mini"
+            android:layout_above="@id/first_ll"
+            android:layout_marginRight="40dp"
+            android:layout_marginBottom="-15dp"
+            android:layout_alignBottom="@id/first_ll"
+            android:layout_alignParentRight="true"
             android:src="@drawable/ic_magnify_white_18dp"
-            fab:rippleColor="@color/blueaccent"
-            android:layout_above="@+id/second_ll"
-            android:layout_marginRight="20dp"
-            android:layout_alignRight="@+id/first_ll"
-            android:layout_alignEnd="@+id/first_ll" />
-
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/second_fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|right"
-            fab:fabSize="mini"
-            android:src="@drawable/ic_download_white_18dp"
-
-            fab:rippleColor="@color/blueaccent"
-            android:layout_above="@+id/third_ll"
-            android:layout_alignRight="@+id/second_ll"
-            android:layout_alignEnd="@+id/second_ll" />
+            fab:rippleColor="@color/blueaccent"/>
     </RelativeLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnSave"
+        android:text="@string/guardar"
+        android:textAppearance="@style/TextAppearance.AppCompat.Widget.Button.Inverse"
+        android:visibility="gone"
+        android:background="@color/blueaccent"
+        android:layout_gravity="bottom"/>
+
 </FrameLayout>

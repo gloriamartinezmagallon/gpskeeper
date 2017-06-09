@@ -27,7 +27,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import navdev.gpstrack.ent.Route;
 import navdev.gpstrack.fragment.MapFragment;
-import navdev.gpstrack.fragment.RoutedetailsFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -141,14 +140,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void irDetallesruta(Route rutaseleccionada){
-        ruta = rutaseleccionada;
 
-        Log.d(LOGTAG,"Ruta seleccionada "+ruta.getName());
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .add(R.id.container, RoutedetailsFragment.newInstance("RoutedetailsFragment", "RoutedetailsFragment"))
-                .addToBackStack("RoutedetailsFragment")
-                .commit();
     }
 
     public void irListadoRutas(){

@@ -184,29 +184,28 @@ public class GpsBBDD extends SQLiteOpenHelper {
     }
 
     public ArrayList<Route> getAllRoutes() {
-        ArrayList<Route> array_list = new ArrayList<Route>();
+        ArrayList<Route> array_list = new ArrayList<>();
 
-
-        //hp = new HashMap();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from "+ROUTES_TABLE_NAME, null );
-        while(res.moveToFirst() == false){
-            Route route = new Route();
+        Cursor res = db.rawQuery("select * from " + ROUTES_TABLE_NAME, null);
+        if (res.moveToFirst()){
+            do {
+                Route route = new Route();
 
-            route.setId(res.getInt(res.getColumnIndex(ROUTES_COLUMN_ID)));
-            route.setName(res.getString(res.getColumnIndex(ROUTES_COLUMN_NAME)));
-            ArrayList rutas = new ArrayList();
-            String[] rutasstring = res.getString(res.getColumnIndex(ROUTES_COLUMN_TRACKS)).split(" ");
-            for (int i = 0; i < rutasstring.length; i++){
-                rutas.add(rutasstring[i]);
-            }
-            route.setTracks(rutas);
-            route.setImported(res.getInt(res.getColumnIndex(ROUTES_COLUMN_IMPORTED)));
-            route.setUses(res.getInt(res.getColumnIndex(ROUTES_COLUMN_USES)));
-            route.setAdddate(res.getString(res.getColumnIndex(ROUTES_COLUMN_ADDDATE)));
+                route.setId(res.getInt(res.getColumnIndex(ROUTES_COLUMN_ID)));
+                route.setName(res.getString(res.getColumnIndex(ROUTES_COLUMN_NAME)));
+                ArrayList rutas = new ArrayList();
+                String[] rutasstring = res.getString(res.getColumnIndex(ROUTES_COLUMN_TRACKS)).split(" ");
+                for (int i = 0; i < rutasstring.length; i++) {
+                    rutas.add(rutasstring[i]);
+                }
+                route.setTracks(rutas);
+                route.setImported(res.getInt(res.getColumnIndex(ROUTES_COLUMN_IMPORTED)));
+                route.setUses(res.getInt(res.getColumnIndex(ROUTES_COLUMN_USES)));
+                route.setAdddate(res.getString(res.getColumnIndex(ROUTES_COLUMN_ADDDATE)));
 
-            array_list.add(route);
-            res.moveToNext();
+                array_list.add(route);
+            } while (res.moveToNext());
         }
         return array_list;
     }

@@ -1,22 +1,36 @@
 package navdev.gpstrack;
 
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.vincent.filepicker.Constant;
+import com.vincent.filepicker.activity.NormalFilePickActivity;
+import com.vincent.filepicker.filter.entity.NormalFile;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -32,24 +46,25 @@ import java.util.Date;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import navdev.gpstrack.dao.GpsBBDD;
 import navdev.gpstrack.ent.Route;
+import navdev.gpstrack.utils.MapUtils;
+import navdev.gpstrack.utils.PermissionUtils;
 
 public class ImportRouteActivity extends AppCompatActivity {
 
     static String LOGTAG = "ImportRouteActivity";
-    public int FILESELECTCODE = 99;
 
-    ProgressDialog barProgressDialog;
-    Route rutaimportada;
+    private static final int ACCESSFILE_PERMISSION_REQUEST_CODE = 23;
 
-    FileFilter filter = new FileFilter() {
+    Route mRutaimportada;
 
-        @Override
-        public boolean accept(File arg0) {
-            return arg0.getName().endsWith(".kml") || arg0.isDirectory();
-        }
 
-    };
+    FloatingActionButton mSavefile;
+    TextView mTextfile;
+    Button mSavebtn;
+
+    GoogleMap mMap;
 
 
     @Override
@@ -57,178 +72,37 @@ public class ImportRouteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_import_route);
 
-        FloatingActionButton first_fab = (FloatingActionButton) findViewById(R.id.first_fab);
-        FloatingActionButton second_fab = (FloatingActionButton) findViewById(R.id.second_fab);
+        mSavefile = (FloatingActionButton) findViewById(R.id.first_fab);
 
-        final EditText urledittext = (EditText) findViewById(R.id.urleditext);
-
-        first_fab.setOnClickListener(new View.OnClickListener() {
+        mSavefile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    System.out.println("Buscando rutas");
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("file/*.kml");
-                startActivityForResult(intent, FILESELECTCODE);
-
+                 searchFile();
             }
         });
 
-        second_fab.setOnClickListener(new View.OnClickListener() {
+        mTextfile = (TextView) findViewById(R.id.textFile);
+        mSavebtn = (Button) findViewById(R.id.btnSave);
+        mSavebtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (urledittext.getText().toString().length() == 0) {
-                    Toast.makeText(ImportRouteActivity.this, getResources().getString(R.string.indiqueurl), Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                barProgressDialog = new ProgressDialog(ImportRouteActivity.this);
-                barProgressDialog.setTitle(getResources().getString(R.string.descargando));
-                barProgressDialog.setMessage(getResources().getString(R.string.espere));
-                barProgressDialog.setIndeterminate(true);
-                barProgressDialog.show();
-
-                final DownloadFile downloadFile = new DownloadFile(ImportRouteActivity.this);
-                downloadFile.execute(urledittext.getText().toString());
-
-                barProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        downloadFile.cancel(true);
-                    }
-                });
+                guardarRuta();
             }
         });
 
-        Intent intent = getIntent();
+        SupportMapFragment mapFragment =
+                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
-        if(Intent.ACTION_VIEW.equals(intent.getAction()) || Intent.ACTION_PICK.equals(intent.getAction())){
-            try{
-                Route rutaimportada = importKMLFromFile(new File(intent.getData().getPath()));
-                //irDetallesruta(rutaimportada);
-            }catch (Exception e){
-                Log.e(LOGTAG,e.getMessage());
-                Toast.makeText(this,"No se pudo importar la ruta",Toast.LENGTH_LONG).show();
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                mMap = googleMap;
+                MapUtils.configMap(mMap,false);
+
+                if (mRutaimportada != null)
+                    MapUtils.drawPrimaryLinePath(mRutaimportada.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
             }
-        }
-    }
-
-
-    private ArrayList<File> filter(ArrayList<File> files) {
-        ArrayList<File> result = new ArrayList<File>();
-
-        for (int i = 0; i < files.size(); i++) {
-            if (files.get(i).isDirectory()) {
-                File file = files.get(i);
-                files.remove(i);
-                File[] files2 = file.listFiles(filter);
-                if (files2 == null)
-                    continue;
-                ArrayList<File> f = new ArrayList<File>();
-                for (int j = 0; j < files2.length; j++) {
-                    f.add(files2[j]);
-                }
-                result.addAll(listFiles(f));
-            } else {
-                result.add(files.get(i));
-            }
-        }
-
-        return result;
-    }
-    private ArrayList<File> listFiles(String folder) {
-        ArrayList<File> files = new ArrayList<File>();
-        files.add(new File(folder));
-        return listFiles(files);
-    }
-    private ArrayList<File> listFiles(ArrayList<File> files) {
-        ArrayList<File> result = new ArrayList<File>();
-
-        for (int i = 0; i < files.size(); i++) {
-            if (files.get(i).isDirectory()) {
-                File file = files.get(i);
-                files.remove(i);
-                File[] files2 = file.listFiles(filter);
-                if (files2 == null)
-                    continue;
-                ArrayList<File> f = new ArrayList<File>();
-                for (int j = 0; j < files2.length; j++) {
-                    f.add(files2[j]);
-                }
-                result.addAll(listFiles(f));
-            } else {
-                result.add(files.get(i));
-            }
-        }
-
-        return result;
-    }
-
-
-    private class DownloadFile extends AsyncTask<String, Integer, String> {
-
-        private Context context;
-
-        public DownloadFile(Context context) {
-            this.context = context;
-        }
-
-        @Override
-        protected String doInBackground(String... sUrl) {
-
-            try {
-                String web = sUrl[0];
-                if (!web.contains("http://") && !web.contains("https://")) web = "http://"+web;
-
-                rutaimportada = parserKMLfromurl(web);
-                return null;
-
-            } catch (Exception e) {
-                return e.getMessage();
-            }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // take CPU lock to prevent CPU from going off if the user
-            // presses the power button during download
-            barProgressDialog.show();
-            rutaimportada = null;
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... progress) {
-            super.onProgressUpdate(progress);
-            // if we get here, length is known, now set indeterminate to false
-            barProgressDialog.setIndeterminate(true);
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            barProgressDialog.dismiss();
-            if (rutaimportada == null){
-                Toast.makeText(context,"Download error: "+result, Toast.LENGTH_LONG).show();
-                //System.out.println(result);
-            }
-            else{
-               // (ImportRouteActivity.this).irDetallesruta(rutaimportada);
-
-            }
-
-        }
-    }
-
-
-
-    public Route parserKMLfromurl(String urls){
-        try {
-            URL url = new URL(urls);
-            return parseKML(new InputSource(url.openStream()));
-
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-        }
-        return null;
+        });
     }
 
 
@@ -236,7 +110,6 @@ public class ImportRouteActivity extends AppCompatActivity {
     public Route importKMLFromFile(File fl){
         try {
             if (fl.isFile() == false){
-
                 Log.d(LOGTAG,"No es fichero");
             }else{
                 Log.d(LOGTAG,fl.canRead()+" "+fl.getName());
@@ -296,12 +169,68 @@ public class ImportRouteActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if(Intent.ACTION_VIEW.equals(intent.getAction())){
             try{
-                Route rutaimportada = importKMLFromFile(new File(intent.getData().getPath()));
-                //irDetallesruta(rutaimportada);
+                mRutaimportada = importKMLFromFile(new File(intent.getData().getPath()));
+                mostrarRuta();
             }catch (Exception e){
                 Toast.makeText(this,"No se pudo importar la ruta",Toast.LENGTH_LONG).show();
             }
 
         }
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == Constant.REQUEST_CODE_PICK_FILE){
+            if (resultCode == RESULT_OK){
+                ArrayList<NormalFile> list = data.getParcelableArrayListExtra(Constant.RESULT_PICK_FILE);
+                try{
+                    mRutaimportada =importKMLFromFile(new File(list.get(0).getPath()));
+                    mostrarRuta();
+                }catch (Exception e){e.printStackTrace();}
+            }
+
+        }
+    }
+
+    private void mostrarRuta(){
+        mTextfile.setText(mRutaimportada.getName());
+        mSavebtn.setVisibility(View.VISIBLE);
+        if (mMap != null)
+            MapUtils.drawPrimaryLinePath(mRutaimportada.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
+    }
+
+    private void guardarRuta(){
+        if (mRutaimportada == null) return;
+        GpsBBDD gpsBBDD = new GpsBBDD(this);
+        long idresult = gpsBBDD.insertRoute(mRutaimportada.getName(), mRutaimportada.getTracks(), mRutaimportada.getImported(), mRutaimportada.getUses(), mRutaimportada.getAdddate());        gpsBBDD.closeDDBB();
+        if (idresult > -1){
+            mRutaimportada.setId(Integer.parseInt(idresult+""));
+            Toast.makeText(this, getResources().getString(R.string.rutaguardada), Toast.LENGTH_LONG).show();
+
+            Intent newintent = new Intent(ImportRouteActivity.this, RoutedetailsActivity.class);
+            newintent.putExtra(RoutedetailsActivity.ID_ROUTE,mRutaimportada.getId());
+            startActivity(newintent);
+            finish();
+        }
+    }
+
+
+    private void searchFile(){
+        Log.d(LOGTAG,"Buscando  fichero kml");
+
+        if (ContextCompat.checkSelfPermission(ImportRouteActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            PermissionUtils.requestPermission(ImportRouteActivity.this, ACCESSFILE_PERMISSION_REQUEST_CODE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,getString(R.string.permission_rationale_accessfiles), true);
+        }else{
+            Intent intent = new Intent(ImportRouteActivity.this, NormalFilePickActivity.class);
+            intent.putExtra(Constant.MAX_NUMBER, 1);
+            intent.putExtra(NormalFilePickActivity.SUFFIX, new String[] {"kml", "KML"});
+            startActivityForResult(intent, Constant.REQUEST_CODE_PICK_FILE);
+        }
+    }
+
+
 }

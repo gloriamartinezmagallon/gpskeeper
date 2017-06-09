@@ -18,15 +18,12 @@ import navdev.gpstrack.R;
  */
 public abstract class PermissionUtils {
 
-    /**
-     * Requests the fine location permission. If a rationale with an additional explanation should
-     * be shown to the user, displays a dialog that triggers the request.
-     */
+
     public static void requestPermission(AppCompatActivity activity, int requestId,
-                                         String permission, boolean finishActivity) {
+                                         String permission, String message, boolean finishActivity) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
             // Display a dialog with rationale.
-            PermissionUtils.RationaleDialog.newInstance(requestId, finishActivity)
+            PermissionUtils.RationaleDialog.newInstance(message, permission, requestId, finishActivity)
                     .show(activity.getSupportFragmentManager(), "dialog");
         } else {
             // Location permission has not been granted yet, request it.
@@ -78,7 +75,7 @@ public abstract class PermissionUtils {
             mFinishActivity = getArguments().getBoolean(ARGUMENT_FINISH_ACTIVITY);
 
             return new AlertDialog.Builder(getActivity())
-                    .setMessage(R.string.location_permission_denied)
+                    .setMessage(R.string.permission_denied)
                     .setPositiveButton(android.R.string.ok, null)
                     .create();
         }
@@ -87,45 +84,33 @@ public abstract class PermissionUtils {
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
             if (mFinishActivity) {
-                Toast.makeText(getActivity(), R.string.permission_required_toast,
+                Toast.makeText(getActivity(), R.string.permission_required,
                         Toast.LENGTH_SHORT).show();
                 getActivity().finish();
             }
         }
     }
 
-    /**
-     * A dialog that explains the use of the location permission and requests the necessary
-     * permission.
-     * <p>
-     * The activity should implement
-     * {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback}
-     * to handle permit or denial of this permission request.
-     */
+
     public static class RationaleDialog extends DialogFragment {
 
         private static final String ARGUMENT_PERMISSION_REQUEST_CODE = "requestCode";
 
         private static final String ARGUMENT_FINISH_ACTIVITY = "finish";
 
+        private static final String ARGUMENT_MESSAGE= "message";
+        private static final String ARGUMENT_PERMISSION= "permission";
+
         private boolean mFinishActivity = false;
 
-        /**
-         * Creates a new instance of a dialog displaying the rationale for the use of the location
-         * permission.
-         * <p>
-         * The permission is requested after clicking 'ok'.
-         *
-         * @param requestCode    Id of the request that is used to request the permission. It is
-         *                       returned to the
-         *                       {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback}.
-         * @param finishActivity Whether the calling Activity should be finished if the dialog is
-         *                       cancelled.
-         */
-        public static RationaleDialog newInstance(int requestCode, boolean finishActivity) {
+
+        public static RationaleDialog newInstance(String message, String permission, int requestCode, boolean finishActivity) {
             Bundle arguments = new Bundle();
             arguments.putInt(ARGUMENT_PERMISSION_REQUEST_CODE, requestCode);
             arguments.putBoolean(ARGUMENT_FINISH_ACTIVITY, finishActivity);
+            arguments.putString(ARGUMENT_MESSAGE, message);
+            arguments.putString(ARGUMENT_PERMISSION, permission);
+
             RationaleDialog dialog = new RationaleDialog();
             dialog.setArguments(arguments);
             return dialog;
@@ -136,15 +121,17 @@ public abstract class PermissionUtils {
             Bundle arguments = getArguments();
             final int requestCode = arguments.getInt(ARGUMENT_PERMISSION_REQUEST_CODE);
             mFinishActivity = arguments.getBoolean(ARGUMENT_FINISH_ACTIVITY);
+            final String message = arguments.getString(ARGUMENT_MESSAGE);
+            final String permission = arguments.getString(ARGUMENT_PERMISSION);
 
             return new AlertDialog.Builder(getActivity())
-                    .setMessage(R.string.permission_rationale_location)
+                    .setMessage(message)
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             // After click on Ok, request the permission.
                             ActivityCompat.requestPermissions(getActivity(),
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                    new String[]{permission},
                                     requestCode);
                             // Do not finish the Activity while requesting permission.
                             mFinishActivity = false;

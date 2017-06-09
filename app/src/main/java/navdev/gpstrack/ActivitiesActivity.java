@@ -1,11 +1,8 @@
 package navdev.gpstrack;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
@@ -15,7 +12,7 @@ import java.util.ArrayList;
 
 import navdev.gpstrack.dao.GpsBBDD;
 import navdev.gpstrack.ent.Activity;
-import navdev.gpstrack.fragment.adapter.ActivitiesAdapter;
+import navdev.gpstrack.adapter.ActivitiesAdapter;
 
 public class ActivitiesActivity extends AppCompatActivity implements AbsListView.OnItemClickListener {
 

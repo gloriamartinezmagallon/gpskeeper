@@ -1,15 +1,16 @@
 package navdev.gpstrack.ent;
 
 import android.location.Location;
+import android.support.v7.widget.RecyclerView;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-/**
- * Created by gloria on 14/08/2015.
- */
 public class Route {
 
     Integer id;
@@ -136,6 +137,20 @@ public class Route {
     @Override
     public String toString() {
         return name;
+    }
+
+
+    public ArrayList<LatLng> getTracksLatLng(){
+        ArrayList<LatLng> locs = new ArrayList<LatLng>();
+        for (int i = 0; i < this.getTracks().size(); i++){
+            String[] aux = this.getTracks().get(i).split(",");
+            double lng = Double.parseDouble(aux[0]);
+            double lat = Double.parseDouble(aux[1]);
+            System.out.println("Coords "+lat+"/"+lng);
+            locs.add(new LatLng(lat,lng));
+        }
+
+        return locs;
     }
 
 

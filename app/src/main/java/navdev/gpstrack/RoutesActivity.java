@@ -1,14 +1,12 @@
 package navdev.gpstrack;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
@@ -19,24 +17,17 @@ import java.util.ArrayList;
 
 import navdev.gpstrack.dao.GpsBBDD;
 import navdev.gpstrack.ent.Route;
-import navdev.gpstrack.fragment.adapter.RoutesAdapter;
+import navdev.gpstrack.adapter.RoutesAdapter;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * Large screen devices (such as tablets) are supported by replacing the ListView
- * with a GridView.
- * <p/>
- * interface.
- */
 public class RoutesActivity extends AppCompatActivity implements AbsListView.OnItemClickListener {
 
-    private AbsListView mListView;
-    private FloatingActionButton fab_addroute;
+    private RecyclerView mListView;
+    private FloatingActionButton mFabaddroute;
+    private TextView mEmptyView;
 
-    ArrayList<Route> routes;
+    ArrayList<Route> mRoutes;
 
-    private ListAdapter mAdapter;
+    private RoutesAdapter mAdapter;
 
 
     @Override
@@ -46,11 +37,11 @@ public class RoutesActivity extends AppCompatActivity implements AbsListView.OnI
         setContentView(R.layout.fragment_route);
 
 
-        mListView = (AbsListView) findViewById(android.R.id.list);
-        mListView.setEmptyView(findViewById(android.R.id.empty));
+        mListView = (RecyclerView) findViewById(R.id.recycler_view);
+        mEmptyView = (TextView) findViewById(android.R.id.empty);
 
-        fab_addroute = (FloatingActionButton) findViewById(R.id.fab);
-        fab_addroute.setOnClickListener(new View.OnClickListener() {
+        mFabaddroute = (FloatingActionButton) findViewById(R.id.fab);
+        mFabaddroute.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent newintent = new Intent(RoutesActivity.this, ImportRouteActivity.class);
@@ -58,41 +49,43 @@ public class RoutesActivity extends AppCompatActivity implements AbsListView.OnI
             }
         });
 
+        initListView();
+    }
+
+    private void initListView(){
         GpsBBDD bbdd = new GpsBBDD(this);
         if (bbdd.numberOfRoutes() == 0){
             setEmptyText(getResources().getString(R.string.emptylistroutes));
         }else{
+            mRoutes = bbdd.getAllRoutes();
 
-             routes = bbdd.getAllRoutes();
+            mAdapter = new RoutesAdapter(this,mRoutes);
+            LinearLayoutManager llm = new LinearLayoutManager(this);
+            llm.setOrientation(LinearLayoutManager.VERTICAL);
+            mListView.setLayoutManager(llm);
+            mListView.setAdapter(mAdapter);
 
-            mAdapter = new RoutesAdapter(this,R.layout.fragment_route_list,routes);
-
-            // Set the adapter
-            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
-
-            // Set OnItemClickListener so we can be notified on item clicks
-            mListView.setOnItemClickListener(this);
         }
 
         bbdd.closeDDBB();
-
     }
 
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //((MainActivity)getActivity()).irDetallesruta(routes.get(position));
+
     }
 
 
     public void setEmptyText(CharSequence emptyText) {
-        View emptyView = mListView.getEmptyView();
-
-        if (emptyView instanceof TextView) {
-            ((TextView) emptyView).setText(emptyText);
-        }
+        mEmptyView.setText(emptyText);
+        mListView.setVisibility(View.GONE);
+        mEmptyView.setVisibility(View.VISIBLE);
     }
 
-
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initListView();
+    }
 }
