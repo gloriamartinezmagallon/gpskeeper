@@ -55,7 +55,7 @@ public class RoutedetailsActivity extends AppCompatActivity {
         route_name.setText(mRoute.getName());
 
         TextView route_distancia = (TextView) findViewById(R.id.route_distancia);
-        route_distancia.setText(mRoute.getDistance()+" m");
+        route_distancia.setText(mRoute.getDistanceKm());
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -74,7 +74,10 @@ public class RoutedetailsActivity extends AppCompatActivity {
         btncomenzar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //((MainActivity) getActivity()).comenzarRuta(ruta);
+                Intent newintent = new Intent(RoutedetailsActivity.this, InitActivity.class);
+                newintent.putExtra(RoutedetailsActivity.ID_ROUTE,mRoute.getId());
+                startActivity(newintent);
+                finish();
             }
         });
 
@@ -85,8 +88,8 @@ public class RoutedetailsActivity extends AppCompatActivity {
                 mRoute.setName(route_name.getText().toString());
                 GpsBBDD gpsBBDD = new GpsBBDD(RoutedetailsActivity.this);
                 gpsBBDD.updateRoute(mRoute.getId(), mRoute.getName(), mRoute.getTracks(), mRoute.getImported(), mRoute.getUses(), mRoute.getAdddate());
-
                 gpsBBDD.closeDDBB();
+                Toast.makeText(RoutedetailsActivity.this, getResources().getString(R.string.rutaguardada), Toast.LENGTH_LONG).show();
             }
         });
 

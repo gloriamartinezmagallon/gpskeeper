@@ -63,4 +63,5 @@
 
 
     <string name="rutanoencontrada">The routes not found</string>
+    <string name="stop">Stop and finish</string>
 </resources>

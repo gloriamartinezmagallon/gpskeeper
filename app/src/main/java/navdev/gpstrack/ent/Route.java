@@ -4,12 +4,16 @@ import android.location.Location;
 import android.support.v7.widget.RecyclerView;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.PolyUtil;
+import com.google.maps.android.SphericalUtil;
 
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import navdev.gpstrack.utils.MapUtils;
 
 public class Route {
 
@@ -109,26 +113,47 @@ public class Route {
         return distance;
     }
 
+    public String getDistanceKm(){
+        float distance = 0;
+
+        for(int i = 1; i < getTracks().size(); i++) {
+
+            String[] aux = this.getTracks().get(i).split(",");
+            double lng = Double.parseDouble(aux[0]);
+            double lat = Double.parseDouble(aux[1]);
+            LatLng currLocation = new LatLng(lat,lng);
+
+            aux = this.getTracks().get(i-1).split(",");
+            lng = Double.parseDouble(aux[0]);
+            lat = Double.parseDouble(aux[1]);
+            LatLng lastLocation = new LatLng(lat,lng);
+
+            distance += MapUtils.distanceBetween(lastLocation,currLocation);
+
+
+        }
+
+        return String.format("%.1f km", distance/1000);
+    }
+
     public float getDistance(){
-        int distance = 0;
+        float distance = 0;
 
-        String[] coor = getTracks().get(0).split(",");
-        Location loc1 = new Location("");
-        loc1.setLongitude(Double.valueOf(coor[0]));
-        loc1.setLatitude(Double.valueOf(coor[1]));
+        for(int i = 1; i < getTracks().size(); i++) {
 
-        Location loc2 = null;
-        for(int i = 1; i < getTracks().size(); i++){
-            if (loc2 != null){
-                loc1 = loc2;
-            }
-            loc2 = new Location("");
+            String[] aux = this.getTracks().get(i).split(",");
+            double lng = Double.parseDouble(aux[0]);
+            double lat = Double.parseDouble(aux[1]);
+            LatLng currLocation = new LatLng(lat,lng);
 
-            coor = getTracks().get(i).split(",");
-            loc2.setLongitude(Double.parseDouble(coor[0]));
-            loc2.setLatitude(Double.parseDouble(coor[1]));
+            aux = this.getTracks().get(i-1).split(",");
+            lng = Double.parseDouble(aux[0]);
+            lat = Double.parseDouble(aux[1]);
+            LatLng lastLocation = new LatLng(lat,lng);
 
-            distance += loc1.distanceTo(loc2);
+            distance += SphericalUtil.computeDistanceBetween(lastLocation,currLocation);
+
+
         }
 
         return distance;

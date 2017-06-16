@@ -70,6 +70,12 @@ public class Activity {
         return adddate;
     }
 
+    public String getAdddatetoformat(){
+
+        SimpleDateFormat simpledateformat = new SimpleDateFormat("dd/MM/yyyy");
+        return simpledateformat.format(this.getAdddate());
+    }
+
     public void setAdddate(Date adddate) {
         this.adddate = adddate;
     }

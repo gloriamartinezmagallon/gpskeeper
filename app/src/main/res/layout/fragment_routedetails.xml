@@ -90,16 +90,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="right"
             android:baselineAlignBottom="@id/linearLayout"
-
             fab:fabSize="mini"
-            fab:rippleColor="@color/defaultlighttext"
+            fab:backgroundTint="@color/defaultlighttext"
             android:src="@drawable/ic_delete_black_24dp"
             android:layout_below="@+id/linearLayout"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_marginRight="65dp"
-            android:layout_marginTop="-25dp"
-            android:visibility="gone"/>
+            android:layout_marginTop="-25dp"/>
 
         <LinearLayout
             android:orientation="horizontal"

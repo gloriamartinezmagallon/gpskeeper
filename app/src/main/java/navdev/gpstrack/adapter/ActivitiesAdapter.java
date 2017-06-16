@@ -52,14 +52,14 @@ public class ActivitiesAdapter extends ArrayAdapter<Activity> {
             TextView tt2 = (TextView) v.findViewById(R.id.activity_info);
             TextView tt3 = (TextView) v.findViewById(R.id.adddate);
 
-            String distancia = getContext().getResources().getString(R.string.distancia)+": "+String.format("%.3f",Double.parseDouble(p.getDistance())/1000)+" km";
+            String distancia = String.format("%.2f",Double.parseDouble(p.getDistance())/1000)+" km";
 
 
-            String tiempo = getContext().getResources().getString(R.string.tiempo)+": "+timeTostring(p.getTime());
+            String tiempo =timeTostring(p.getTime());
 
             tt1.setText(p.getRoute(getContext()).getName());
-            tt2.setText( distancia+" / "+tiempo);
-            tt3.setText(p.getAdddate().toLocaleString());
+            tt2.setText(distancia+"\n"+tiempo);
+            tt3.setText(p.getAdddatetoformat());
 
 
         }
@@ -113,7 +113,7 @@ public class ActivitiesAdapter extends ArrayAdapter<Activity> {
         if (hours<10) txhours="0"+hours;
         else txhours=hours+"";
 
-        return txhours+":"+txminutes;
+        return txhours+"h "+txminutes+" min";
     }
 
 }

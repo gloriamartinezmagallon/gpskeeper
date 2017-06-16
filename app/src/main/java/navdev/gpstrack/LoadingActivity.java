@@ -2,6 +2,7 @@ package navdev.gpstrack;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -27,24 +28,17 @@ public class LoadingActivity extends AppCompatActivity {
         bgImg.setVisibility(View.VISIBLE);
         mInfoLl.setVisibility(View.GONE);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        bgImg.setVisibility(View.GONE);
-                        mInfoLl.setVisibility(View.VISIBLE);
-                    }
-                });
-            }
-        }).start();
+        new GetInfoBBDDTask().execute((Void) null);
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getInfoBBDD();
+    }
+
+    private void getInfoBBDD(){
         GpsBBDD gpsBBDD = new GpsBBDD(this);
 
         int numKms = gpsBBDD.numberOfkm();
@@ -78,10 +72,7 @@ public class LoadingActivity extends AppCompatActivity {
         numactivitiesthismonthTV.setText((numActivitiesthismonth+""));
 
         gpsBBDD.closeDDBB();
-
-
     }
-
 
     public void showActivities(View v){
         Intent newintent = new Intent(LoadingActivity.this, ActivitiesActivity.class);
@@ -111,20 +102,26 @@ public class LoadingActivity extends AppCompatActivity {
         return txhours+":"+txminutes;
     }
 
-    private void goToMain(){
 
-        Intent intent = getIntent();
-        System.out.println("Intent loading "+intent.getAction());
+    public class GetInfoBBDDTask extends AsyncTask<Void, Void, Boolean>{
 
-        Intent newintent = new Intent(LoadingActivity.this, InitActivity.class);
-        if(Intent.ACTION_VIEW.equals(intent.getAction()) || Intent.ACTION_PICK.equals(intent.getAction())){
-            newintent.setAction(intent.getAction());
-            newintent.setData(intent.getData());
-       }
-        startActivity(newintent);
-        finish();
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            getInfoBBDD();
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+
+            bgImg.setVisibility(View.GONE);
+            mInfoLl.setVisibility(View.VISIBLE);
+        }
     }
-
-
 
 }

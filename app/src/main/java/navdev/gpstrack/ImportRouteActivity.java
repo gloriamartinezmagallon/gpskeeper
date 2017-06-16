@@ -28,6 +28,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.kml.KmlContainer;
+import com.google.maps.android.kml.KmlGeometry;
+import com.google.maps.android.kml.KmlGroundOverlay;
+import com.google.maps.android.kml.KmlLayer;
+import com.google.maps.android.kml.KmlMultiGeometry;
+import com.google.maps.android.kml.KmlPlacemark;
 import com.vincent.filepicker.Constant;
 import com.vincent.filepicker.activity.NormalFilePickActivity;
 import com.vincent.filepicker.filter.entity.NormalFile;
@@ -48,6 +54,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import navdev.gpstrack.dao.GpsBBDD;
 import navdev.gpstrack.ent.Route;
+import navdev.gpstrack.utils.KMLParser;
 import navdev.gpstrack.utils.MapUtils;
 import navdev.gpstrack.utils.PermissionUtils;
 
@@ -106,8 +113,11 @@ public class ImportRouteActivity extends AppCompatActivity {
     }
 
 
-    ///IMPORTAR KML FROM FILE
+        ///IMPORTAR KML FROM FILE
     public Route importKMLFromFile(File fl){
+
+
+
         try {
             if (fl.isFile() == false){
                 Log.d(LOGTAG,"No es fichero");
@@ -115,6 +125,7 @@ public class ImportRouteActivity extends AppCompatActivity {
                 Log.d(LOGTAG,fl.canRead()+" "+fl.getName());
             }
             FileInputStream fin = new FileInputStream(fl);
+
 
             Route ruta = parseKML(new InputSource(fin));
 
@@ -195,7 +206,8 @@ public class ImportRouteActivity extends AppCompatActivity {
     }
 
     private void mostrarRuta(){
-        mTextfile.setText(mRutaimportada.getName());
+
+        mTextfile.setText(mRutaimportada.getName()+"\n"+mRutaimportada.getDistanceKm());
         mSavebtn.setVisibility(View.VISIBLE);
         if (mMap != null)
             MapUtils.drawPrimaryLinePath(mRutaimportada.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));

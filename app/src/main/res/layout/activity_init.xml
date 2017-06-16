@@ -17,6 +17,7 @@
         android:layout_gravity="bottom"
         >
     <Button
+        android:id="@+id/startActivityBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTintMode="src_in"
@@ -27,15 +28,28 @@
         android:elevation="4dp"
         android:textSize="20dp"/>
 
-    <Button
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTintMode="src_in"
-        android:backgroundTint="@color/bluedefault"
-        android:textColor="@color/white"
-        android:text="@string/title_section3"
-        android:layout_gravity="bottom"
-        android:layout_margin="@dimen/cardview_default_elevation"
-        android:elevation="4dp" />
+        android:background="@color/cardview_light_background"
+        android:orientation="horizontal"
+        android:padding="@dimen/activity_horizontal_margin">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:layout_weight="1"
+            android:id="@+id/timeWalking"
+            android:text="00:00"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:layout_weight="1"
+            android:id="@+id/distance"
+            android:text="0,00 km"
+            android:textAppearance="@style/TextAppearance.AppCompat.Display1"/>
+    </LinearLayout>
     </LinearLayout>
 </FrameLayout>

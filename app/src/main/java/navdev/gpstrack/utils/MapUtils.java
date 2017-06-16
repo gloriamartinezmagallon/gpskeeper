@@ -8,6 +8,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 
@@ -23,6 +24,10 @@ public class MapUtils {
             mMap.setMyLocationEnabled(showMyLocationButton);
         }catch (Exception e){e.printStackTrace();}
 
+    }
+
+    public static double distanceBetween(LatLng latLng1, LatLng latLng2){
+        return SphericalUtil.computeDistanceBetween(latLng1,latLng2);
     }
 
     public static void  drawPrimaryLinePath(ArrayList<LatLng> listLocsToDraw, final GoogleMap mMap, int color){
