@@ -2,11 +2,15 @@ package navdev.gpstrack.ent;
 
 import android.content.Context;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import navdev.gpstrack.dao.GpsBBDD;
+import navdev.gpstrack.utils.MapUtils;
 
 /**
  * Created by gloria on 09/10/2015.
@@ -54,6 +58,15 @@ public class Activity {
         return distance;
     }
 
+    public String getDistanceKm(){
+        try{
+            float distance = Float.parseFloat(this.distance);
+
+            return String.format("%.1f km", distance/1000);
+        }catch (Exception e){e.printStackTrace();}
+        return "";
+    }
+
     public void setDistance(String distance) {
         this.distance = distance;
     }
@@ -86,5 +99,32 @@ public class Activity {
         Date stringDate = simpledateformat.parse(adddate, pos);
         this.adddate = stringDate;
 
+    }
+
+    public String timeTostring(){
+        int minutes = ((time / (1000 * 60)) % 60);
+        int hours = ((time / (1000 * 60 * 60)) % 24);
+
+        String txminutes, txhours;
+
+        if (minutes<10) txminutes="0"+minutes;
+        else txminutes=minutes+"";
+
+        txhours=hours+"";
+
+        return txhours+"h "+txminutes+" min";
+    }
+
+
+    public ArrayList<LatLng> getLocations(Context context){
+        GpsBBDD gpsBBDD = new GpsBBDD(context);
+        ArrayList<ActivityLocation> locations = gpsBBDD.getAllPositionActivity(id);
+        gpsBBDD.closeDDBB();
+
+        ArrayList<LatLng> latLngs = new ArrayList<>();
+        for (ActivityLocation al: locations){
+            latLngs.add(new LatLng(al.getLatitud(),al.getLongitud()));
+        }
+        return latLngs;
     }
 }

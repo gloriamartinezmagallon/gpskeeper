@@ -5,7 +5,7 @@
     <string name="title_section1">Start activity</string>
     <string name="title_section2">My routes</string>
     <string name="title_section3">My activities</string>
-    <string name="title_section4"></string>
+    <string name="title_section4">Configuration</string>
     <string name="navigation_drawer_open">Open menu</string>
     <string name="navigation_drawer_close">Close menu</string>
     <string name="config_fragment">Configuration</string>
@@ -40,6 +40,7 @@
     <string name="definirumbraldistancia">The application notifies you when you leave the route. Enter the distance you want to be warned, in meters.</string>
     <string name="definirnumavisos">Indicates the number of messages you want to receive.</string>
     <string name="guardar">Save</string>
+    <string name="cancel">Cancel</string>
     <string name="guardarok">Settings saved successfully</string>
 
 
@@ -62,6 +63,12 @@
     <string name="numroutes"> num of routes</string>
 
 
-    <string name="rutanoencontrada">The routes not found</string>
+    <string name="rutanoencontrada">The route not found</string>
+    <string name="activitynoencontrada">The activity not found</string>
     <string name="stop">Stop and finish</string>
+    <string name="borraractividad">Delete the activity?</string>
+    <string name="actividadborrada">Deleted activity</string>
+    <string name="location_permission_denied">This application requires location permission to enable the \'my position\' layer. Please try again and grant access to use the location. If the permission has been permanently denied, it can be enabled from System Settings > Applications > \'GPS Keeper\'.</string>
+    <string name="permission_required_toast">Se necesita el permiso de ubicación para este aplicación</string>
+    <string name="fueraruta">You are out of the way</string>
 </resources>

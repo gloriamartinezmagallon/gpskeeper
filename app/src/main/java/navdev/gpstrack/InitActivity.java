@@ -1,20 +1,25 @@
 package navdev.gpstrack;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,19 +52,23 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
 
     Intent mActivityServiceIntent;
 
-    Boolean mIsInPause;
+    Boolean mIsInPause = false;
     long mTimeWalking;
     double mDistance;
 
     TextView mDistanceTV;
     TextView mTimeWalkingTV;
 
+    long mActivityId;
+    Thread mThreadUpdateTime;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_init);
 
-        int idRoute = getIntent().getExtras().getInt(RoutedetailsActivity.ID_ROUTE);
+        int idRoute  = getIntent().getExtras().getInt(RoutedetailsActivity.ID_ROUTE);
+
 
         GpsBBDD gpsBBDD = new GpsBBDD(this);
         mRoute = gpsBBDD.getRouteById(idRoute);
@@ -93,21 +102,19 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
 
     private void stopActivity(){
         new AlertDialog.Builder(this)
-                .setIcon(R.mipmap.ic_launcher)
                 .setTitle(R.string.app_name)
                 .setMessage(R.string.confirmterminaruta)
                 .setPositiveButton(R.string.si, new DialogInterface.OnClickListener()
                 {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                       Integer route = (mRoute.getId());
                         String tiempotext = ( mTimeWalking+ "");
                         String distance = (mDistance + "");
 
-                        GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
-                        gpsBBDD.insertActivity(route, distance, Integer.parseInt(tiempotext), new Date());
+                        mThreadUpdateTime.interrupt();
 
-                       finish();
+                        GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
+                        gpsBBDD.updateActivity(mActivityId, distance, Integer.parseInt(tiempotext));
                         stopService(mActivityServiceIntent);
                         finish();
 
@@ -140,7 +147,10 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         activityServiceReceiver.setOnDataSendStateChange(new ActivityServiceReceiver.OnDataSendStateChange() {
             @Override
             public void run(Boolean inPause, long time, double distance) {
-                mTimeWalkingTV.setText(timeTostring(time));
+                mTimeWalking = time;
+                mIsInPause = inPause;
+                mDistance = distance;
+                System.out.println(inPause+" "+time+" "+distance);
                 mDistanceTV.setText(String.format("%.1f km", distance/1000));
                 if (inPause){
                     mDistanceTV.setTextColor(getResources().getColor(R.color.bluedefault));
@@ -154,8 +164,41 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
                 activityServiceReceiver,
                 statusIntentFilter);
 
-        startService(mActivityServiceIntent);
+        GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
+        mActivityId = gpsBBDD.insertActivity(mRoute.getId(), "0", 0, new Date());
 
+        mActivityServiceIntent.putExtra("activityId",mActivityId);
+        mActivityServiceIntent.putExtra("NUMAVISOS", getValueInPreference("NUMAVISOS", getValueInPreference("NUMAVISOS",4)));
+        mActivityServiceIntent.putExtra("UMBRALDISTANCIA", getValueInPreference("UMBRALDISTANCIA", getValueInPreference("UMBRALDISTANCIA",10)));
+        startService(mActivityServiceIntent);
+        updateTime();
+
+    }
+
+    private  void updateTime(){
+        mThreadUpdateTime = new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    while (!isInterrupted()) {
+                        Thread.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!mIsInPause){
+                                    mTimeWalking += 1000;
+                                    mTimeWalkingTV.setText(timeTostring(mTimeWalking));
+                                }
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                }
+            }
+        };
+
+        mThreadUpdateTime.start();
     }
 
     @Override
@@ -169,9 +212,6 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         MapUtils.drawPrimaryLinePath(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
     }
 
-    /**
-     * Enables the My Location layer if the fine location permission has been granted.
-     */
     private void enableMyLocation() {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -229,23 +269,22 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         }
     }
 
-    /**
-     * Displays a dialog with error message explaining that the location permission is missing.
-     */
     private void showMissingPermissionError() {
         PermissionUtils.PermissionDeniedDialog
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
 
     public String timeTostring(Long tiempo){
-        System.out.println(tiempo);
 
         int hours = (int) ((tiempo / 1000) / 3600);
         int minutes = (int) (((tiempo / 1000) / 60) % 60);
         int seconds = (int) ((tiempo / 1000) % 60);
 
 
-        String  txminutes, txhours;
+        String  txtseconds,txminutes, txhours;
+
+        if (seconds<10) txtseconds="0"+seconds;
+        else txtseconds=seconds+"";
 
         if (minutes<10) txminutes="0"+minutes;
         else txminutes=minutes+"";
@@ -253,6 +292,85 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         if (hours<10) txhours="0"+hours;
         else txhours=hours+"";
 
-        return txhours+":"+txminutes;
+        return txhours+":"+txminutes+":"+txtseconds;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.global, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                showSettings();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showSettings(){
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.fragment_configuration, null);
+
+        final EditText editTextDistancia = (EditText) layout.findViewById(R.id.editTextDistancia);
+        final EditText editTextAvisos = (EditText) layout.findViewById(R.id.editTextAvisos);
+
+        editTextDistancia.setText("" + getValueInPreference("UMBRALDISTANCIA", getValueInPreference("UMBRALDISTANCIA",10)));
+        editTextAvisos.setText(""+ getValueInPreference("NUMAVISOS", getValueInPreference("NUMAVISOS",4)));
+
+
+        //Building dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.config_fragment);
+        builder.setView(layout);
+        builder.setPositiveButton(R.string.guardar, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                int umbraldistancia = Integer.parseInt(editTextDistancia.getText().toString());
+                int numavisos = Integer.parseInt(editTextAvisos.getText().toString());
+
+                setValueInPreference("UMBRALDISTANCIA",umbraldistancia);
+                setValueInPreference("NUMAVISOS",numavisos);
+
+                Toast.makeText(InitActivity.this,R.string.guardarok,Toast.LENGTH_LONG).show();
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public void setValueInPreference(String key, int newHighScore){
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putInt(key, newHighScore);
+        editor.commit();
+    }
+
+    public int getValueInPreference(String key, int defaultValue){
+        SharedPreferences sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        return sharedPref.getInt(key, defaultValue);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if (mActivityServiceIntent != null){
+            stopActivity();
+        }
     }
 }

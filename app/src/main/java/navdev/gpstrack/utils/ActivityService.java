@@ -1,6 +1,9 @@
 package navdev.gpstrack.utils;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.Context;
@@ -8,12 +11,20 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.maps.model.LatLng;
+
+import navdev.gpstrack.InitActivity;
+import navdev.gpstrack.R;
+import navdev.gpstrack.dao.GpsBBDD;
+import navdev.gpstrack.ent.Activity;
+import navdev.gpstrack.ent.Route;
 
 public class ActivityService extends Service {
 
@@ -37,7 +48,16 @@ public class ActivityService extends Service {
 
     BroadcastNotifier mBrodcastNotifier;
 
+    long mActivityId;
 
+    Activity mActivity;
+    Route mRoute;
+
+    int mUmbraldistancia;
+    int mNumavisos;
+    int mNumavisosrealizados;
+
+    Vibrator mVibrator;
 
     @Override
     public boolean stopService(Intent name) {
@@ -45,6 +65,7 @@ public class ActivityService extends Service {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
                 mLocationManager.removeUpdates(mLocationListener);
         }
+        removeNotificacion();
         return super.stopService(name);
     }
 
@@ -66,9 +87,22 @@ public class ActivityService extends Service {
         timeWalking = 0;
         distance = 0;
 
+        mNumavisosrealizados = 0;
+
+        mActivityId = intent.getLongExtra("activityId",0);
+        mUmbraldistancia = intent.getIntExtra("UMBRALDISTANCIA",0);
+        mNumavisos = intent.getIntExtra("NUMAVISOS",0);
+
+        GpsBBDD gpsBBDD = new GpsBBDD(this);
+        mActivity = gpsBBDD.getActivityById((int)mActivityId);
+        mRoute = mActivity.getRoute(this);
+        gpsBBDD.closeDDBB();
+
         initLocationListener();
 
         initBroadcastNotifier();
+
+        mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -104,9 +138,10 @@ public class ActivityService extends Service {
     private void makeUseOfNewLocation(Location location){
 
         //COMPROBAMOS SI CAMBIA DE MOVIMIENTO A PAUSA O AL REVÉS PARA ACTUALIZAR EL TIEMPO
+
+        long currentTime = System.currentTimeMillis();
         if (location.getSpeed() == 0){
             if (!isInPause){
-                long currentTime = System.currentTimeMillis();
                 if (lastTime != 0)
                     timeWalking += currentTime - lastTime;
                 lastTime = currentTime;
@@ -114,22 +149,68 @@ public class ActivityService extends Service {
             }
         }else{
             if (isInPause){
-                long currentTime = System.currentTimeMillis();
-                if (lastTime != 0)
-                    timeInPause += currentTime - lastTime;
-                lastTime = currentTime;
                 isInPause = false;
+            }
+
+            if (lastTime != 0)
+                timeWalking += currentTime - lastTime;
+
+            lastTime = currentTime;
+
+            LatLng currentLocation = new LatLng(location.getLatitude(),location.getLongitude());
+            if (lastLocation != null){
+                distance += MapUtils.distanceBetween(lastLocation, currentLocation);
+            }
+            lastLocation = currentLocation;
+
+            GpsBBDD gpsBBDD = new GpsBBDD(this);
+            gpsBBDD.insertPositionActivity(mActivityId, currentLocation.latitude, currentLocation.longitude);
+            gpsBBDD.closeDDBB();
+
+            double distanciaARuta = mRoute.getDistanceto(location);
+            if (distanciaARuta >= (double)mUmbraldistancia){
+                if (mNumavisos >= mNumavisosrealizados){
+                    notifyUser();
+                    mVibrator.vibrate(1000);
+                    mNumavisosrealizados++;
+                }
+            }else{
+                if (mNumavisosrealizados > 0){
+                    removeNotificacion();
+                    mNumavisosrealizados = 0;
+                }
             }
         }
 
-
-        LatLng currentLocation = new LatLng(location.getLatitude(),location.getLongitude());
-        if (lastLocation != null){
-            distance += MapUtils.distanceBetween(lastLocation, currentLocation);
-        }
-        lastLocation = currentLocation;
-
         mBrodcastNotifier.broadcastIntentSendinfoState(isInPause,timeWalking,distance);
+    }
+
+    public void removeNotificacion(){
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+
+        notificationManager.cancel((int)mActivityId);
+    }
+
+    public void notifyUser() {
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+
+        Intent intent = new Intent(this, InitActivity.class);
+        PendingIntent pIntent = PendingIntent.getActivity(this, (int) mActivityId, intent, 0);
+
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setSmallIcon(R.drawable.ic_notification);
+        if (Build.VERSION.SDK_INT > 21)
+            builder.setColor(getResources().getColor(R.color.bluedefault));
+        builder.setContentTitle(getString(R.string.fueraruta));
+        builder.setContentText(getString(R.string.app_name));
+        builder.setPriority(Notification.PRIORITY_MAX);
+        builder.setAutoCancel(true);
+        Notification n = builder.build();
+
+
+        notificationManager.notify((int)mActivityId, n);
     }
 
 }

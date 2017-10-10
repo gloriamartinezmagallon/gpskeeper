@@ -64,6 +64,7 @@ public class RoutedetailsActivity extends AppCompatActivity {
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 mMap = googleMap;
+                MapUtils.configMap(mMap,false);
                 MapUtils.drawPrimaryLinePath(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
             }
         });

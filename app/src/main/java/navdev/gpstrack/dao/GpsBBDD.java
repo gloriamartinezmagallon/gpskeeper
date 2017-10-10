@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import navdev.gpstrack.ent.Activity;
+import navdev.gpstrack.ent.ActivityLocation;
 import navdev.gpstrack.ent.Route;
 
 public class GpsBBDD extends SQLiteOpenHelper {
@@ -221,6 +222,45 @@ public class GpsBBDD extends SQLiteOpenHelper {
         return db.insert(ACTIVITIES_TABLE_NAME, null, contentValues);
     }
 
+    public boolean updateActivity (long activity,String distance, Integer time) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ACTIVITIES_COLUMN_DISTANCE, distance);
+        contentValues.put(ACTIVITIES_COLUMN_TIME, time);
+        return (db.update(ACTIVITIES_TABLE_NAME, contentValues,ACTIVITIES_COLUMN_ID+"= ?",new String[]{Long.toString(activity)})>0);
+    }
+
+    public Integer deleteActivity (Integer id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(POSITIONSACTIVITY_TABLE_NAME, POSITIONSACTIVITY_COLUMN_ACTIVTY+" = ? ",
+                new String[] { Integer.toString(id) });
+
+        return db.delete(ACTIVITIES_TABLE_NAME,
+                ACTIVITIES_COLUMN_ID+" = ? ",
+                new String[] { Integer.toString(id) });
+    }
+
+    public Activity getActivityById(Integer id){
+        Activity activity = null;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select * from "+ACTIVITIES_TABLE_NAME+" where "+ACTIVITIES_COLUMN_ID+" = ? ",
+                new String[] { Integer.toString(id) });
+
+        if (res.moveToFirst()){
+            activity = new Activity();
+
+            activity.setId(res.getInt(res.getColumnIndex(ACTIVITIES_COLUMN_ID)));
+            activity.setRoute(res.getInt(res.getColumnIndex(ACTIVITIES_COLUMN_ROUTE)));
+            activity.setDistance(res.getString(res.getColumnIndex(ACTIVITIES_COLUMN_DISTANCE)));
+            activity.setTime(res.getInt(res.getColumnIndex(ACTIVITIES_COLUMN_TIME)));
+            activity.setAdddate(res.getString(res.getColumnIndex(ACTIVITIES_COLUMN_ADDDATE)));
+        }
+
+        return activity;
+    }
+
     public int numberOfActivities(){
         SQLiteDatabase db = this.getReadableDatabase();
         int numRows = (int) DatabaseUtils.queryNumEntries(db, ACTIVITIES_TABLE_NAME);
@@ -236,56 +276,6 @@ public class GpsBBDD extends SQLiteOpenHelper {
         }
 
         return 0;
-    }
-
-    public int numberOfkm(){
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_DISTANCE+") from "+ACTIVITIES_TABLE_NAME, null);
-        if(res.moveToFirst()){
-            return res.getInt(0);
-        }
-
-        return 0;
-    }
-
-    public int numberOfkmthismonth(){
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_DISTANCE+") from "+ACTIVITIES_TABLE_NAME+" WHERE "+ACTIVITIES_COLUMN_ADDDATE+" LIKE ?", new String[]{new SimpleDateFormat("yyyy-MM-%").format(new Date())});
-        if(res.moveToFirst()){
-            return res.getInt(0);
-        }
-
-        return 0;
-    }
-
-
-    public int numberOftime(){
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_TIME+") from "+ACTIVITIES_TABLE_NAME, null);
-        if(res.moveToFirst()){
-            return res.getInt(0);
-        }
-
-        return 0;
-    }
-
-    public int numberOftimethismonth(){
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_TIME+") from "+ACTIVITIES_TABLE_NAME+" WHERE "+ACTIVITIES_COLUMN_ADDDATE+" LIKE ?", new String[]{new SimpleDateFormat("yyyy-MM-%").format(new Date())});
-        if(res.moveToFirst()){
-            return res.getInt(0);
-        }
-
-        return 0;
-    }
-
-
-
-    public Integer deleteActivity (Integer id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(ACTIVITIES_TABLE_NAME,
-                ACTIVITIES_COLUMN_ID+" = ? ",
-                new String[] { Integer.toString(id) });
     }
 
     public ArrayList<Activity> getAllActivities() {
@@ -312,4 +302,76 @@ public class GpsBBDD extends SQLiteOpenHelper {
         }
         return array_list;
     }
+
+
+    public long insertPositionActivity (long activity,double lat, double lng) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(POSITIONSACTIVITY_COLUMN_ACTIVTY, activity);
+        contentValues.put(POSITIONSACTIVITY_COLUMN_LAT, lat);
+        contentValues.put(POSITIONSACTIVITY_COLUMN_LNG, lng);
+        return db.insert(POSITIONSACTIVITY_TABLE_NAME, null, contentValues);
+    }
+
+
+    public ArrayList<ActivityLocation> getAllPositionActivity(int activity) {
+        ArrayList<ActivityLocation> array_list = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res = db.rawQuery("select * from " + POSITIONSACTIVITY_TABLE_NAME+" WHERE "+POSITIONSACTIVITY_COLUMN_ACTIVTY+"=?", new String[]{Integer.toString(activity)});
+        if (res.moveToFirst()){
+            do {
+                ActivityLocation activityLocation = new ActivityLocation(
+                        res.getInt(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_ACTIVTY)),
+                        res.getDouble(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_LAT)),
+                        res.getDouble(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_LNG))
+                );
+
+                array_list.add(activityLocation);
+            } while (res.moveToNext());
+        }
+        return array_list;
+    }
+
+    //ESTADISTICAS
+    public int numberOfkm(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_DISTANCE+") from "+ACTIVITIES_TABLE_NAME, null);
+        if(res.moveToFirst()){
+            return res.getInt(0);
+        }
+
+        return 0;
+    }
+
+    public int numberOfkmthismonth(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_DISTANCE+") from "+ACTIVITIES_TABLE_NAME+" WHERE "+ACTIVITIES_COLUMN_ADDDATE+" LIKE ?", new String[]{new SimpleDateFormat("yyyy-MM-%").format(new Date())});
+        if(res.moveToFirst()){
+            return res.getInt(0);
+        }
+
+        return 0;
+    }
+
+    public int numberOftime(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_TIME+") from "+ACTIVITIES_TABLE_NAME, null);
+        if(res.moveToFirst()){
+            return res.getInt(0);
+        }
+
+        return 0;
+    }
+
+    public int numberOftimethismonth(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_TIME+") from "+ACTIVITIES_TABLE_NAME+" WHERE "+ACTIVITIES_COLUMN_ADDDATE+" LIKE ?", new String[]{new SimpleDateFormat("yyyy-MM-%").format(new Date())});
+        if(res.moveToFirst()){
+            return res.getInt(0);
+        }
+
+        return 0;
+    }
+
 }

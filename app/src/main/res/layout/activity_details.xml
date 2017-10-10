@@ -12,7 +12,10 @@
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
             android:layout_height="match_parent" android:layout_weight="1" android:id="@+id/map" tools:context=".MapsActivity"
-            android:name="com.google.android.gms.maps.SupportMapFragment" />
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_above="@+id/linearLayout2" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,58 +27,24 @@
             android:layout_gravity="center_horizontal|top"
             android:orientation="vertical"
             android:id="@+id/linearLayout">
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content">
-                <EditText
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:singleLine="true"
-                    android:textSize="14sp"
-                    android:id="@+id/route_name"/>
+                    android:id="@+id/activiy_date"/>
 
-            </LinearLayout>
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp">
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="14sp"
-                    android:paddingRight="10dp"
-                    android:textColor="@color/defaultlighttext"
-                    android:text="@string/distancia"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                     android:layout_weight="1"
-                    android:textSize="14sp"
-                    android:id="@+id/route_distancia"
-                    android:textColor="@color/defaulttext"
-                    android:text="@string/sinruta"/>
-            </LinearLayout>
+                    android:id="@+id/activity_name"/>
+
+            
 
 
         </LinearLayout>
 
-        <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fabsave"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:baselineAlignBottom="@id/linearLayout"
-        android:src="@drawable/ic_save_white_24dp"
-            fab:fabSize="mini"
-            fab:rippleColor="@color/blueaccent"
-        android:layout_below="@+id/linearLayout"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="-25dp" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fabtrash"
@@ -89,7 +58,7 @@
             android:layout_below="@+id/linearLayout"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginRight="65dp"
+            android:layout_marginRight="25dp"
             android:layout_marginTop="-25dp"/>
 
         <LinearLayout
@@ -99,20 +68,32 @@
             android:background="@android:color/transparent"
             android:layout_height="1dp"/>
 
-        <TextView
+        <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:background="@color/bluedefault"
-            android:textColor="@android:color/white"
-            android:textSize="17sp"
-            android:gravity="center"
-            android:text="@string/comenzar"
-            android:clickable="true"
-            android:id="@+id/btncomenzar"
-            android:padding="10dp"
+            android:background="@color/defaultbg"
+            android:orientation="horizontal"
+            android:padding="@dimen/activity_horizontal_margin"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+            android:layout_toEndOf="@+id/separador"
+            android:id="@+id/linearLayout2">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:text="@string/sinruta"
+                android:id="@+id/activity_distance"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:layout_weight="1"
+                android:text="@string/sinruta"
+                android:textAlignment="center"
+                android:id="@+id/activity_time"/>
+        </LinearLayout>
 
     </RelativeLayout>
 

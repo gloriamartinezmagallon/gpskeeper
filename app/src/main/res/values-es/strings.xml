@@ -40,6 +40,7 @@
     <string name="definirumbraldistancia">La aplicación le avisará cuando se salga de la ruta. Indique la distancia a la que quieres ser avisado, en metros.</string>
     <string name="definirnumavisos">Indica el número de avisos que quieres recibir.</string>
     <string name="guardar">Guardar</string>
+    <string name="cancel">Cancelar</string>
     <string name="guardarok">Configuración guardada correctamente</string>
 
 
@@ -49,4 +50,20 @@
     <string name="permission_required_toast">Location permission is required for this app.</string>
 
     <string name="title_activity_init">GPS Keeper</string>
+    <string name="actividadborrada">Actividad borrada</string>
+    <string name="activitiesthismonth">actividades este mes de</string>
+    <string name="activitynoencontrada">Actividad no encontrada</string>
+    <string name="borraractividad">Borrar la actividad</string>
+    <string name="kmsalltime">kms totales</string>
+    <string name="kmsthismonth">kms este mes</string>
+    <string name="mydatas">Mis datos</string>
+    <string name="numroutes">nº de rutas</string>
+    <string name="permission_denied">Esta aplicación requiere permiso. Inténtalo de nuevo y concede acceso para utilizar la aplicación.</string>
+    <string name="permission_rationale_accessfiles">Si el permiso se ha denegado permanentemente, se puede habilitar en la página Configuración del sistema > Aplicaciones > \'GPS Keeper\'.</string>
+    <string name="permission_required">Este permiso es necesario para el funcionamiento de la aplicación</string>
+    <string name="rutanoencontrada">Ruta no encontrada</string>
+    <string name="stop">Parar y terminar</string>
+    <string name="timealltime">Tiempo total</string>
+    <string name="timethismonth">Tiempo en este mes</string>
+    <string name="fueraruta">Estás fuera de la ruta</string>
 </resources>

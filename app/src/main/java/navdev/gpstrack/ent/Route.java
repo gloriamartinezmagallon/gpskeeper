@@ -95,18 +95,21 @@ public class Route {
 
     }
 
-    public float getDistanceto(Location posicion){
-        float distance = 0;
+    public double getDistanceto(Location posicion){
+        double distance = 0;
 
-        for(int i = 1; i < getTracks().size(); i++){
-            Location loc = new Location("");
+        for(int i = 0; i < getTracks().size(); i++){
+
 
             String[] coor = getTracks().get(i).split(",");
-            loc.setLongitude(Double.parseDouble(coor[0]));
-            loc.setLatitude(Double.parseDouble(coor[1]));
+            LatLng to = new LatLng(Double.parseDouble(coor[1]),Double.parseDouble(coor[0]));
+            LatLng from = new LatLng(posicion.getLatitude(),posicion.getLongitude());
 
-            if (distance == 0 || distance > loc.distanceTo(posicion)){
-                distance = loc.distanceTo(posicion);
+
+
+            double aux = MapUtils.distanceBetween(to,from);
+            if (i == 0 || distance > aux){
+                distance = aux;
             }
         }
 
