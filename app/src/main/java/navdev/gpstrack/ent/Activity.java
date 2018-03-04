@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import navdev.gpstrack.dao.GpsBBDD;
-import navdev.gpstrack.utils.MapUtils;
 
 /**
  * Created by gloria on 09/10/2015.
@@ -102,8 +101,8 @@ public class Activity {
     }
 
     public String timeTostring(){
-        int minutes = ((time / (1000 * 60)) % 60);
-        int hours = ((time / (1000 * 60 * 60)) % 24);
+        int minutes = ((time / (60)) % 60);
+        int hours = ((time / (60 * 60)) % 24);
 
         String txminutes, txhours;
 

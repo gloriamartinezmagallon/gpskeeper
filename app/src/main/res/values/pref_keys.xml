@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (C) 2012 - 2014 jonas.oreland@gmail.com
+  ~
+  ~  This program is free software: you can redistribute it and/or modify
+  ~  it under the terms of the GNU General Public License as published by
+  ~  the Free Software Foundation, either version 3 of the License, or
+  ~  (at your option) any later version.
+  ~
+  ~  This program is distributed in the hope that it will be useful,
+  ~  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~  GNU General Public License for more details.
+  ~
+  ~  You should have received a copy of the GNU General Public License
+  ~  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="pref_autolap_active" translatable="false">pref_autolap_active</string>
+    <string name="pref_autolap" translatable="false">pref_autolap</string>
+    <string name="pref_countdown_active" translatable="false">pref_countdown_active</string>
+	<string name="pref_countdown_time" translatable="false">pref_countdown_time</string>
+	<string name="pref_unit" translatable="false">pref_unit</string>
+	<string name="pref_startgps" translatable="false">pref_startgps</string>
+	<string name="pref_pollInterval" translatable="false">pref_pollInterval</string>
+	<string name="pref_pollDistance" translatable="false">pref_pollDistance</string>
+	<string name="pref_altitude_adjust" translatable="false">pref_altitude_adjust</string>
+	<string name="pref_mute" translatable="false">pref_mute</string>
+	<string name="pref_mute_bool" translatable="false">pref_mute_bool</string>
+	<string name="pref_cue_hrm_connection" translatable="false">pref_cue_hrm_connection</string>
+
+    <string name="cue_configure_hrzones" translatable="false">cue_configure_hrzones</string>
+    <string name="pref_cue_accounts" translatable="false">pref_cue_accounts</string>
+    <string name="pref_cue_audiocues" translatable="false">pref_cue_audiocues</string>
+    <string name="pref_cue_workouts" translatable="false">pref_cue_workouts</string>
+
+    <string name="cue_time" translatable="false">cue_time</string>
+    <string name="cue_time_intervall" translatable="false">cue_time_intervall</string>
+    <string name="cue_distance" translatable="false">cue_distance</string>
+    <string name="cue_distance_intervall" translatable="false">cue_distance_intervall</string>
+	<string name="cue_end_of_lap" translatable="false">cue_end_of_lap</string>
+
+    <string name="cueinfo_total_distance" translatable="false">cueinfo_total_distance</string>
+    <string name="cueinfo_total_time" translatable="false">cueinfo_total_time</string>
+    <string name="cueinfo_total_pace" translatable="false">cueinfo_total_pace</string>
+    <string name="cueinfo_total_speed" translatable="false">cueinfo_total_speed</string>
+    <string name="cueinfo_total_hr" translatable="false">cueinfo_total_hr</string>
+    <string name="cueinfo_total_hrz" translatable="false">cueinfo_total_hrz</string>
+
+    <!-- TODO configurable step cues -->
+    <string name="cueinfo_step_distance" translatable="false">cueinfo_step_distance</string>
+    <string name="cueinfo_step_time" translatable="false">cueinfo_step_time</string>
+    <string name="cueinfo_step_pace" translatable="false">cueinfo_step_pace</string>
+    <string name="cueinfo_step_speed" translatable="false">cueinfo_step_speed</string>
+    <string name="cueinfo_step_hr" translatable="false">cueinfo_step_hr</string>
+    <string name="cueinfo_step_hrz" translatable="false">cueinfo_step_hrz</string>
+
+    <string name="cueinfo_lap_distance" translatable="false">cueinfo_lap_distance</string>
+    <string name="cueinfo_lap_time" translatable="false">cueinfo_lap_time</string>
+    <string name="cueinfo_lap_pace" translatable="false">cueinfo_lap_pace</string>
+    <string name="cueinfo_lap_speed" translatable="false">cueinfo_lap_speed</string>
+    <string name="cueinfo_lap_hr" translatable="false">cueinfo_lap_hr</string>
+    <string name="cueinfo_lap_hrz" translatable="false">cueinfo_lap_hrz</string>
+
+    <string name="cueinfo_current_speed" translatable="false">cueinfo_current_speed</string>
+    <string name="cueinfo_current_hr" translatable="false">cueinfo_current_hr</string>
+    <string name="cueinfo_current_hrz" translatable="false">cueinfo_current_hrz</string>
+    <string name="cueinfo_current_pace" translatable="false">cueinfo_current_pace</string>
+
+    <string name="cueinfo_target_coaching" translatable="false">cueinfo_target_coaching</string>
+    <string name="cueinfo_skip_startstop" translatable="false">cueinfo_skip_startstop</string>
+
+    <string name="pref_basic_audio" translatable="false">basicAudio</string>
+    <string name="pref_basic_sport" translatable="false">basicSport</string>
+    <string name="pref_basic_target_type" translatable="false">basicTargetType</string>
+    <string name="pref_basic_target_pace_max" translatable="false">basic_target_pace_max</string>
+    <string name="pref_basic_target_pace_min_range" translatable="false">basic_target_pace_min_range</string>
+    <string name="pref_basic_target_hrz" translatable="false">basic_target_hrz</string>
+
+    <string name="pref_interval_audio" translatable="false">intervalAudio</string>
+    <string name="pref_interval_repetitions" translatable="false">intervalRepetitions</string>
+    <string name="pref_interval_type" translatable="false">intervalType</string>
+    <string name="pref_interval_time" translatable="false">intervalTime</string>
+    <string name="pref_interval_distance" translatable="false">intervalDistance</string>
+    <string name="pref_interval_rest_type" translatable="false">intervalRestType</string>
+    <string name="pref_interval_rest_time" translatable="false">intervalRestTime</string>
+    <string name="pref_interval_rest_distance" translatable="false">intervalRestDistance</string>
+
+    <string name="pref_advanced_audio" translatable="false">advancedAudio</string>
+    <string name="pref_advanced_workout" translatable="false">advancedWorkout</string>
+
+    <string name="pref_target_pace_moving_average_seconds" translatable="false">target_pace_moving_average_seconds</string>
+    <string name="pref_target_pace_grace_seconds" translatable="false">target_pace_grace_seconds</string>
+
+    <string name="pref_convert_interval_distance_rest_to_recovery" translatable="false">pref_convert_interval_distance_rest_to_recovery</string>
+    <string name="pref_convert_advanced_distance_rest_to_recovery" translatable="false">pref_convert_advanced_distance_rest_to_recovery</string>
+    <string name="pref_step_autolap_active" translatable="false">pref_step_autolap_active</string>
+    <string name="pref_step_countdown_active" translatable="false">pref_step_countdown_active</string>
+    <string name="pref_step_countdown_time" translatable="false">pref_step_countdown_time</string>
+
+    <string name="pref_pace_graph_smoothing" translatable="false">pref_pace_graph_smoothing</string>
+    <string name="pref_pace_graph_smoothing_filters" translatable="false">pref_pace_graph_smoothing_filters</string>
+
+    <string name="pref_mapbox_default_style" translatable="false">pref_mapbox_default_style</string>
+    <string name="pref_runneruplive_active" translatable="false">pref_runneruplive_active</string>
+    <string name="pref_runneruplive_serveradress" translatable="false">pref_runneruplive_serveradress</string>
+
+    <string name="pref_keystartstop_active" translatable="false">pref_keystartstop_active</string>
+
+    <string name="pref_bt_name" translatable="false">pref_bt_name</string>
+    <string name="pref_bt_address" translatable="false">pref_bt_address</string>
+    <string name="pref_bt_provider" translatable="false">pref_bt_provider</string>
+
+    <string name="pref_bt_experimental" translatable="false">pref_bt_experimental</string>
+    <string name="pref_bt_mock" translatable="false">pref_bt_mock</string>
+
+    <string name="pref_hrz_age" translatable="false">hrzAge</string>
+    <string name="pref_hrz_sex" translatable="false">hrzSex</string>
+    <string name="pref_hrz_mhr" translatable="false">hrzMHR</string>
+
+    <string name="pref_hrz_values" translatable="false">pref_hrz_values</string>
+    <string name="pref_hrz_thresholds" translatable="false">pref_hrz_thresholds</string>
+
+    <string name="pref_autopause_active" translatable="false">pref_autopause_active</string>
+    <string name="pref_autopause_afterseconds" translatable="false">pref_autopause_afterseconds</string>
+    <string name="pref_autopause_minpace" translatable="false">pref_autopause_minpace</string>
+    <!--string name="pref_min_livelog_delay_millis">pref_min_livelog_delay_millis</string-->
+
+    <string name="pref_battery_level_low_threshold" translatable="false">batterylevelLowThreshold</string>
+    <string name="pref_battery_level_high_threshold" translatable="false">batterylevelHighThreshold</string>
+    <string name="pref_battery_level_low_notification_discard" translatable="false">batteryLevelLowDialog</string>
+
+    <string name="pref_use_cadence_step_sensor" translatable="false">pref_use_cadence_step_sensor</string>
+    <string name="pref_use_temperature_sensor" translatable="false">pref_use_temperature_sensor</string>
+    <string name="pref_use_pressure_sensor" translatable="false">pref_use_pressure_sensor</string>
+
+    <string name="pref_pressure_elevation_gps_average" translatable="false">pref_pressure_elevation_gps_average</string>
+    <string name="pref_log_gpx_accuracy" translatable="false">pref_log_gpx_accuracy</string>
+
+    <string name="pref_experimental_features" translatable="false">pref_experimental_features</string>
+
+    <string name="pref_audio_lang" translatable="false">pref_audio_lang</string>
+
+    <string name="pref_exportdb" translatable="false">pref_exportdb</string>
+    <string name="pref_importdb" translatable="false">pref_importdb</string>
+    <string name="pref_prunedb" translatable="false">pref_prunedb</string>
+    <string name="pref_aboutcategory" translatable="false">pref_aboutcategory</string>
+    <string name="pref_googleplayserviceslegalnotices" translatable="false">pref_googleplayserviceslegalnotices</string>
+</resources>

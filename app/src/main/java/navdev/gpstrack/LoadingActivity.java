@@ -1,8 +1,6 @@
 package navdev.gpstrack;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -28,14 +26,14 @@ public class LoadingActivity extends AppCompatActivity {
         bgImg.setVisibility(View.VISIBLE);
         mInfoLl.setVisibility(View.GONE);
 
-        new GetInfoBBDDTask().execute((Void) null);
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         getInfoBBDD();
+        bgImg.setVisibility(View.GONE);
+        mInfoLl.setVisibility(View.VISIBLE);
     }
 
     private void getInfoBBDD(){
@@ -54,7 +52,7 @@ public class LoadingActivity extends AppCompatActivity {
         TextView timealltimeTV = (TextView) findViewById(R.id.timealltime);
         timealltimeTV.setText(timeTostring(numTime)+" "+getResources().getString(R.string.timealltime));
 
-        int numTimethismonth = gpsBBDD.numberOftime();
+        int numTimethismonth = gpsBBDD.numberOftimethismonth();
         TextView numtimethismonthTV = (TextView) findViewById(R.id.numtimethismonth);
         numtimethismonthTV.setText(timeTostring(numTimethismonth));
 
@@ -84,44 +82,22 @@ public class LoadingActivity extends AppCompatActivity {
         startActivity(newintent);
     }
 
-    public String timeTostring(int tiempo){
-        int seconds = (int) ((tiempo / (1000)) % 60);
-        int minutes = (int) ((tiempo / (1000 * 60)) % 60);
-        int hours = (int) ((tiempo / (1000 * 60 * 60)) % 24);
+    public String timeTostring(int tiempo) {
+        int seconds = (int) (tiempo % 60);
+        int minutes = (int) (tiempo / 60) % 60;
+        int hours = (int) ((tiempo / (60 * 60)) % 24);
 
         String txseconds, txminutes, txhours;
-        if (seconds<10) txseconds="0"+seconds;
-        else txseconds=seconds+"";
+        if (seconds < 10) txseconds = "0" + seconds;
+        else txseconds = seconds + "";
 
-        if (minutes<10) txminutes="0"+minutes;
-        else txminutes=minutes+"";
+        if (minutes < 10) txminutes = "0" + minutes;
+        else txminutes = minutes + "";
 
-        if (hours<10) txhours="0"+hours;
-        else txhours=hours+"";
+        if (hours < 10) txhours = "0" + hours;
+        else txhours = hours + "";
 
-        return txhours+":"+txminutes;
-    }
-
-
-    public class GetInfoBBDDTask extends AsyncTask<Void, Void, Boolean>{
-
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            getInfoBBDD();
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-
-            bgImg.setVisibility(View.GONE);
-            mInfoLl.setVisibility(View.VISIBLE);
-        }
+        return txhours + ":" + txminutes;
     }
 
 }

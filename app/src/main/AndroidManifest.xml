@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="navdev.gpstrack"
-    android:versionCode="1"
-    android:versionName="1.0">
+    package="navdev.gpstrack">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -90,6 +88,9 @@
             android:name=".InitActivity"
             android:label="@string/title_activity_init" />
         <activity
+            android:name=".RunActivity"
+            android:label="@string/title_activity_init" />
+        <activity
             android:name=".ActivitiesActivity"
             android:label="@string/title_section3" />
         <activity
@@ -104,6 +105,11 @@
 
         <service
             android:name=".utils.ActivityService"
+            android:exported="false" />
+
+
+        <service
+            android:name=".gpsutils.tracker.Tracker"
             android:exported="false" />
 
         <activity

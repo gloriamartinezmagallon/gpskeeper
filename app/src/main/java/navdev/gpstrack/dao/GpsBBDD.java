@@ -284,7 +284,7 @@ public class GpsBBDD extends SQLiteOpenHelper {
 
         //hp = new HashMap();
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from "+ACTIVITIES_TABLE_NAME, null );
+        Cursor res =  db.rawQuery( "select * from "+ACTIVITIES_TABLE_NAME+" ORDER BY "+ACTIVITIES_COLUMN_ADDDATE+" DESC", null );
         res.moveToFirst();
 
         while(res.isAfterLast() == false){
@@ -338,7 +338,7 @@ public class GpsBBDD extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_DISTANCE+") from "+ACTIVITIES_TABLE_NAME, null);
         if(res.moveToFirst()){
-            return res.getInt(0);
+            return res.getInt(0)/1000;
         }
 
         return 0;
@@ -348,7 +348,7 @@ public class GpsBBDD extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_DISTANCE+") from "+ACTIVITIES_TABLE_NAME+" WHERE "+ACTIVITIES_COLUMN_ADDDATE+" LIKE ?", new String[]{new SimpleDateFormat("yyyy-MM-%").format(new Date())});
         if(res.moveToFirst()){
-            return res.getInt(0);
+            return res.getInt(0)/1000;
         }
 
         return 0;
@@ -356,22 +356,28 @@ public class GpsBBDD extends SQLiteOpenHelper {
 
     public int numberOftime(){
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_TIME+") from "+ACTIVITIES_TABLE_NAME, null);
+        Cursor res =  db.rawQuery( "select "+ACTIVITIES_COLUMN_TIME+" from "+ACTIVITIES_TABLE_NAME, null);
+        int resultado = 0;
         if(res.moveToFirst()){
-            return res.getInt(0);
+            do{
+                resultado += Integer.parseInt(res.getString(0));
+            }while (res.moveToNext());
         }
 
-        return 0;
+        return resultado;
     }
 
     public int numberOftimethismonth(){
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select sum("+ACTIVITIES_COLUMN_TIME+") from "+ACTIVITIES_TABLE_NAME+" WHERE "+ACTIVITIES_COLUMN_ADDDATE+" LIKE ?", new String[]{new SimpleDateFormat("yyyy-MM-%").format(new Date())});
+        Cursor res =  db.rawQuery( "select "+ACTIVITIES_COLUMN_TIME+" from "+ACTIVITIES_TABLE_NAME+" WHERE "+ACTIVITIES_COLUMN_ADDDATE+" LIKE ?", new String[]{new SimpleDateFormat("yyyy-MM-%").format(new Date())});
+        int resultado = 0;
         if(res.moveToFirst()){
-            return res.getInt(0);
+            do{
+                resultado += Integer.parseInt(res.getString(0));
+            }while (res.moveToNext());
         }
 
-        return 0;
+        return resultado;
     }
 
 }

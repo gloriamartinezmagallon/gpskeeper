@@ -27,6 +27,7 @@
     <string name="rutaguardada">Ruta guardada correctamente</string>
     <string name="comenzar">Comenzar actividad</string>
     <string name="velocidad">Velocidad </string>
+    <string name="paso">Paso</string>
     <string name="tiempo">Tiempo </string>
     <string name="tiempopausa">En pausa</string>
     <string name="mindistanciaaruta">Lo sentimos, para poder seguir la ruta debe estar a menos de 1km de ella.</string>

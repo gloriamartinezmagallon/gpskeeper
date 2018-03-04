@@ -1,18 +1,25 @@
 package navdev.gpstrack;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,18 +35,28 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
 import java.util.Date;
+import java.util.Locale;
 
 import navdev.gpstrack.dao.GpsBBDD;
 import navdev.gpstrack.ent.Route;
-import navdev.gpstrack.utils.ActivityService;
-import navdev.gpstrack.utils.ActivityServiceReceiver;
-import navdev.gpstrack.utils.BroadcastNotifier;
+import navdev.gpstrack.gpsutils.notifications.NotificationStateManager;
+import navdev.gpstrack.gpsutils.tracker.GpsInformation;
+import navdev.gpstrack.gpsutils.tracker.GpsStatus;
+import navdev.gpstrack.gpsutils.tracker.Tracker;
+import navdev.gpstrack.gpsutils.tracker.component.TrackerState;
+import navdev.gpstrack.gpsutils.tracker.workout.Dimension;
+import navdev.gpstrack.gpsutils.tracker.workout.Workout;
+import navdev.gpstrack.gpsutils.tracker.workout.WorkoutBuilder;
+import navdev.gpstrack.gpsutils.utils.Constants;
+import navdev.gpstrack.gpsutils.utils.TickListener;
 import navdev.gpstrack.utils.MapUtils;
 import navdev.gpstrack.utils.PermissionUtils;
 
+import static navdev.gpstrack.R.id.startActivityBtn;
+
 public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyLocationButtonClickListener,
         OnMapReadyCallback,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback, TickListener, GpsInformation {
 
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -50,7 +67,6 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
 
     Route mRoute;
 
-    Intent mActivityServiceIntent;
 
     Boolean mIsInPause = false;
     long mTimeWalking;
@@ -60,7 +76,13 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
     TextView mTimeWalkingTV;
 
     long mActivityId;
-    Thread mThreadUpdateTime;
+
+    boolean skipStopGps = false;
+    GpsStatus mGpsStatus = null;
+    Tracker mTracker = null;
+    private NotificationStateManager notificationStateManager;
+
+    Button mStartBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,123 +105,98 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        mTimeWalkingTV = (TextView) findViewById(R.id.timeWalking);
-        mDistanceTV = (TextView) findViewById(R.id.distance);
 
-        final Button startActivityBtn = (Button)findViewById(R.id.startActivityBtn);
-        startActivityBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mActivityServiceIntent == null) {
-                    startActivity();
-                    startActivityBtn.setText(R.string.stop);
-                }else {
-                    stopActivity();
-                }
+        mStartBtn = (Button)findViewById(startActivityBtn);
+        mStartBtn.setOnClickListener(startButtonClick);
+
+
+        mGpsStatus = new GpsStatus(this);
+
+        bindGpsTracker();
+    }
+
+    final View.OnClickListener startButtonClick = new View.OnClickListener() {
+        public void onClick(View v) {
+            if (mGpsStatus.isEnabled() == false) {
+                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+            } else if (mTracker.getState() != TrackerState.CONNECTED) {
+                startGps();
+            } else if (mTracker.getState() == TrackerState.CONNECTED) {
+                mGpsStatus.stop(InitActivity.this);
+
+                /**
+                 * unregister receivers
+                 */
+                unregisterStartEventListener();
+
+                /**
+                 * This will start the advancedWorkoutSpinner!
+                 */
+                mTracker.setWorkout(prepareWorkout());
+                mTracker.start();
+
+                skipStopGps = true;
+
+                GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
+                mActivityId = gpsBBDD.insertActivity(mRoute.getId(), "0", 0, new Date());
+
+
+                Intent intent = new Intent(InitActivity.this,
+                        RunActivity.class);
+
+                intent.putExtra(RoutedetailsActivity.ID_ROUTE,mRoute.getId());
+                intent.putExtra(RoutedetailsActivity.ID_ACTIVITY,mActivityId);
+                InitActivity.this.startActivityForResult(intent, 112);
+                finish();
+                return;
             }
-        });
+            updateView();
+        }
+    };
+
+    Workout prepareWorkout() {
+        Context ctx = getApplicationContext();
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(ctx);
+        SharedPreferences audioPref = null;
+        Workout w = null;
+        Dimension target = Dimension.valueOf(Constants.DIMENSION.DISTANCE);
+        w = WorkoutBuilder.createDefaultWorkout(getResources(), pref, target);
+        w.setWorkoutType(Constants.WORKOUT_TYPE.BASIC);
+        WorkoutBuilder.prepareWorkout(getResources(), pref, w);
+        return w;
     }
 
-    private void stopActivity(){
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.app_name)
-                .setMessage(R.string.confirmterminaruta)
-                .setPositiveButton(R.string.si, new DialogInterface.OnClickListener()
-                {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String tiempotext = ( mTimeWalking+ "");
-                        String distance = (mDistance + "");
+    private void unregisterStartEventListener() {
+        try {
+            unregisterReceiver(startEventBroadcastReceiver);
+        } catch (Exception e) {
+        }
 
-                        mThreadUpdateTime.interrupt();
-
-                        GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
-                        gpsBBDD.updateActivity(mActivityId, distance, Integer.parseInt(tiempotext));
-                        stopService(mActivityServiceIntent);
-                        finish();
-
-                        // ((MainActivity) getActivity()).irActividades();
-
-                    }
-
-                })
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .show();
     }
 
-    private void startActivity(){
+    private final BroadcastReceiver startEventBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mTracker == null)
+                        return;
 
-        mActivityServiceIntent = new Intent(this,ActivityService.class);
+                    if (!mStartBtn.isEnabled())
+                        return;
 
-        // The filter's action is BROADCAST_ACTION
-        IntentFilter statusIntentFilter = new IntentFilter(
-                BroadcastNotifier.BROADCAST_ACTION);
-
-        // Sets the filter's category to DEFAULT
-        statusIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
-
-        ActivityServiceReceiver activityServiceReceiver = new ActivityServiceReceiver();
-        activityServiceReceiver.setOnDataSendStateChange(new ActivityServiceReceiver.OnDataSendStateChange() {
-            @Override
-            public void run(Boolean inPause, long time, double distance) {
-                mTimeWalking = time;
-                mIsInPause = inPause;
-                mDistance = distance;
-                System.out.println(inPause+" "+time+" "+distance);
-                mDistanceTV.setText(String.format("%.1f km", distance/1000));
-                if (inPause){
-                    mDistanceTV.setTextColor(getResources().getColor(R.color.bluedefault));
-                }else{
-                    mDistanceTV.setTextColor(getResources().getColor(R.color.blueaccent));
+                    if (mTracker.getState() == TrackerState.INIT /* this will start gps */||
+                            mTracker.getState() == TrackerState.INITIALIZED /* ...start a workout*/ ||
+                            mTracker.getState() == TrackerState.CONNECTED) {
+                        mStartBtn.performClick();
+                    }
                 }
-            }
-        });
+            });
+        }
+    };
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                activityServiceReceiver,
-                statusIntentFilter);
 
-        GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
-        mActivityId = gpsBBDD.insertActivity(mRoute.getId(), "0", 0, new Date());
-
-        mActivityServiceIntent.putExtra("activityId",mActivityId);
-        mActivityServiceIntent.putExtra("NUMAVISOS", getValueInPreference("NUMAVISOS", getValueInPreference("NUMAVISOS",4)));
-        mActivityServiceIntent.putExtra("UMBRALDISTANCIA", getValueInPreference("UMBRALDISTANCIA", getValueInPreference("UMBRALDISTANCIA",10)));
-        startService(mActivityServiceIntent);
-        updateTime();
-
-    }
-
-    private  void updateTime(){
-        mThreadUpdateTime = new Thread() {
-
-            @Override
-            public void run() {
-                try {
-                    while (!isInterrupted()) {
-                        Thread.sleep(1000);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (!mIsInPause){
-                                    mTimeWalking += 1000;
-                                    mTimeWalkingTV.setText(timeTostring(mTimeWalking));
-                                }
-                            }
-                        });
-                    }
-                } catch (InterruptedException e) {
-                }
-            }
-        };
-
-        mThreadUpdateTime.start();
-    }
 
     @Override
     public void onMapReady(GoogleMap map) {
@@ -250,14 +247,7 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mActivityServiceIntent != null){
-            stopService(mActivityServiceIntent);
-            mActivityServiceIntent = null;
-        }
-    }
+
 
     @Override
     protected void onResumeFragments() {
@@ -366,11 +356,167 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         return sharedPref.getInt(key, defaultValue);
     }
 
+
+    private boolean mIsBound = false;
+    private final ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service. Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mTracker = ((Tracker.LocalBinder) service).getService();
+
+            // Tell the user about this for our demo.
+            InitActivity.this.onGpsTrackerBound();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mTracker = null;
+        }
+    };
+
+    void onGpsTrackerBound() {
+        startGps();
+        updateView();
+    }
+
+    void bindGpsTracker() {
+        // Establish a connection with the service. We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        getApplicationContext().bindService(new Intent(this, Tracker.class),
+                mConnection, Context.BIND_ADJUST_WITH_ACTIVITY | Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
+
+    private void startGps() {
+        Log.e(getClass().getName(), "InitActivity.startGps()");
+        if (mGpsStatus != null && !mGpsStatus.isLogging())
+            mGpsStatus.start(this);
+
+        if (mTracker != null) {
+            mTracker.connect();
+        }
+    }
+
     @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        if (mActivityServiceIntent != null){
-            stopActivity();
+    public String getGpsAccuracy() {
+        String s = "";
+        if (mTracker != null) {
+            Location l = mTracker.getLastKnownLocation();
+
+            if (l != null && l.getAccuracy() > 0) {
+                s = String.format(Locale.getDefault(), ", %s m", l.getAccuracy());
+            }
+            if (mTracker.getCurrentElevation() != null) {
+                s += String.format(Locale.getDefault(), " (%.1f m)", mTracker.getCurrentElevation());
+            }
+        }
+
+        return s;
+    }
+
+    @Override
+    public int getSatellitesAvailable()  {
+        return mGpsStatus.getSatellitesAvailable();
+    }
+
+    @Override
+    public int getSatellitesFixed() {
+        return mGpsStatus.getSatellitesFixed();
+    }
+
+    @Override
+    public void onTick() {
+        updateView();
+    }
+
+    private void updateView(){}
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        registerStartEventListener();
+    }
+
+    private void registerStartEventListener() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Constants.Intents.START_WORKOUT);
+        registerReceiver(startEventBroadcastReceiver, intentFilter);
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (mIsBound == false || mTracker == null) {
+            bindGpsTracker();
+        } else {
+            onGpsTrackerBound();
+        }
+        this.updateView();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        stopGps();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unregisterStartEventListener();
+    }
+
+    private void stopGps() {
+        Log.e(getClass().getName(), "StartActivity.stopGps() skipStop: " + this.skipStopGps);
+        if (skipStopGps == true)
+            return;
+
+        if (mGpsStatus != null)
+            mGpsStatus.stop(this);
+
+        if (mTracker != null)
+            mTracker.reset();
+
+        //notificationStateManager.cancelNotification();
+    }
+
+    void unbindGpsTracker() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            getApplicationContext().unbindService(mConnection);
+            mIsBound = false;
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        stopGps();
+        unbindGpsTracker();
+        mGpsStatus = null;
+        mTracker = null;
+
+        super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed () {
+        if (mGpsStatus.isLogging()) {
+            stopGps();
+            updateView();
+        } else {
+            super.onBackPressed();
         }
     }
 }
