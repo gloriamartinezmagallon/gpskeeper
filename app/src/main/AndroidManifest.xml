@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="navdev.gpstrack">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -15,9 +16,11 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme.YesActionBar">
+        android:theme="@style/AppTheme.YesActionBar"
+        tools:ignore="GoogleAppIndexingWarning">
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="@string/google_maps_key" />
@@ -30,58 +33,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter
-                android:icon="@mipmap/ic_launcher"
-                android:label="@string/filelabel"
-                android:priority="1000">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.KML"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.kml"
-                    android:scheme="file" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.PICK" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.KML"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern="/.*\\.kml"
-                    android:scheme="file" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="*"
-                    android:pathPattern="/.*\\.KML"
-                    android:scheme="http" />
-                <data
-                    android:host="*"
-                    android:pathPattern="/.*\\.kml"
-                    android:scheme="https" />
             </intent-filter>
         </activity>
         <activity
@@ -98,7 +50,21 @@
             android:label="@string/title_section2" />
         <activity
             android:name=".ImportRouteActivity"
-            android:label="@string/rutasencontradas" />
+            android:label="@string/rutasencontradas">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.pdf" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="*" android:pathPattern=".*\\.pdf" />
+                <data android:scheme="https" android:host="*" android:pathPattern=".*\\.pdf" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".RoutedetailsActivity"
             android:label="@string/title_section2" />
@@ -109,12 +75,16 @@
 
 
         <service
+            android:name=".service.TrackerService"
+            android:exported="false" />
+
+        <service
             android:name=".gpsutils.tracker.Tracker"
             android:exported="false" />
 
         <activity
             android:name=".ActivityDetailsActivity"
-            android:label="@string/title_section3"></activity>
+            android:label="@string/title_section3"/>
     </application>
 
 </manifest>

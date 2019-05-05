@@ -7,4 +7,5 @@
     <color name="defaultlighttext">#FFAAAAAA</color>
     <color name="defaultbg">#fff4f5f6</color>
     <color name="white">#ffffffff</color>
+    <color name="error">#b00020</color>
 </resources>

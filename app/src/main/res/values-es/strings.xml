@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GPS Keeper</string>
+    <string name="app_name">GPS Keeper 2</string>
     <string name="action_settings">Ajustes</string>
     <string name="title_section1">Iniciar actividad</string>
     <string name="title_section2">Mis rutas</string>
@@ -67,4 +67,7 @@
     <string name="timealltime">Tiempo total</string>
     <string name="timethismonth">Tiempo en este mes</string>
     <string name="fueraruta">Estás fuera de la ruta</string>
+
+
+    <string name="service_msg">Seguimiento, toque para cancelar</string>
 </resources>

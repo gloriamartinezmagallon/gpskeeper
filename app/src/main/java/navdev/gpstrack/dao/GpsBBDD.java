@@ -25,7 +25,7 @@ public class GpsBBDD extends SQLiteOpenHelper {
 
     static String LOGTAG = "GpsBBDD";
 
-    public static final String DATABASE_NAME = "GpsBBDD.db";
+    public static final String DATABASE_NAME = "GpsBBDD2.db";
     public static final String ROUTES_TABLE_NAME = "routes";
     public static final String ROUTES_COLUMN_ID = "id";
     public static final String ROUTES_COLUMN_NAME = "name";
@@ -47,10 +47,13 @@ public class GpsBBDD extends SQLiteOpenHelper {
     public static final String POSITIONSACTIVITY_COLUMN_ACTIVTY = "activity";
     public static final String POSITIONSACTIVITY_COLUMN_LAT = "lat";
     public static final String POSITIONSACTIVITY_COLUMN_LNG = "lng";
+    public static final String POSITIONSACTIVITY_COLUMN_ALT = "alt";
+    public static final String POSITIONSACTIVITY_COLUMN_DATETIME = "registerTime";
+    public static final String POSITIONSACTIVITY_COLUMN_SPEED = "speed";
 
     private HashMap hp;
 
-    static int VERSIONDB = 3;
+    static int VERSIONDB = 5;
 
     public GpsBBDD(Context context)
     {
@@ -66,11 +69,14 @@ public class GpsBBDD extends SQLiteOpenHelper {
     }
 
     private String createPositionsActivities(){
-        return "create table " + POSITIONSACTIVITY_TABLE_NAME + " " +
+        return "create table " + POSITIONSACTIVITY_TABLE_NAME +" "+
                 "( " + POSITIONSACTIVITY_COLUMN_ID + " integer primary key AUTOINCREMENT, " +
                 "" + POSITIONSACTIVITY_COLUMN_ACTIVTY + " integer," +
                 "" + POSITIONSACTIVITY_COLUMN_LAT + " double," +
-                "" + POSITIONSACTIVITY_COLUMN_LNG + " double)";
+                "" + POSITIONSACTIVITY_COLUMN_LNG + " double," +
+                "" + POSITIONSACTIVITY_COLUMN_ALT + " double," +
+                "" + POSITIONSACTIVITY_COLUMN_DATETIME + " INTEGER," +
+                "" + POSITIONSACTIVITY_COLUMN_SPEED + " double)";
     }
 
     private String createActivities(){
@@ -100,6 +106,24 @@ public class GpsBBDD extends SQLiteOpenHelper {
             db.execSQL("DROP TABLE IF EXISTS "+ POSITIONSACTIVITY_TABLE_NAME);
 
             onCreate(db);
+        }
+
+        if (oldVersion < 5){
+            db.execSQL("create table " + POSITIONSACTIVITY_TABLE_NAME + "_NEW" +
+                    "( " + POSITIONSACTIVITY_COLUMN_ID + " integer primary key AUTOINCREMENT, " +
+                    "" + POSITIONSACTIVITY_COLUMN_ACTIVTY + " integer," +
+                    "" + POSITIONSACTIVITY_COLUMN_LAT + " double," +
+                    "" + POSITIONSACTIVITY_COLUMN_LNG + " double," +
+                    "" + POSITIONSACTIVITY_COLUMN_ALT + " double," +
+                    "" + POSITIONSACTIVITY_COLUMN_DATETIME + " INTEGER," +
+                    "" + POSITIONSACTIVITY_COLUMN_SPEED + " double)");
+
+            db.execSQL("INSERT INTO " + POSITIONSACTIVITY_TABLE_NAME + "_NEW " +
+                    "("+POSITIONSACTIVITY_COLUMN_ACTIVTY+","+POSITIONSACTIVITY_COLUMN_LAT+","+POSITIONSACTIVITY_COLUMN_LNG+") " +
+                    "SELECT "+POSITIONSACTIVITY_COLUMN_ACTIVTY+","+POSITIONSACTIVITY_COLUMN_LAT+","+POSITIONSACTIVITY_COLUMN_LNG+"" +
+                    " FROM "+POSITIONSACTIVITY_TABLE_NAME);
+            db.execSQL("DROP TABLE "+POSITIONSACTIVITY_TABLE_NAME);
+            db.execSQL("ALTER TABLE "+POSITIONSACTIVITY_TABLE_NAME+"_new RENAME TO "+POSITIONSACTIVITY_TABLE_NAME);
         }
     }
 
@@ -304,12 +328,15 @@ public class GpsBBDD extends SQLiteOpenHelper {
     }
 
 
-    public long insertPositionActivity (long activity,double lat, double lng) {
+    public long insertPositionActivity (long activity,double lat, double lng, double alt, double speed, long registerTime) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(POSITIONSACTIVITY_COLUMN_ACTIVTY, activity);
         contentValues.put(POSITIONSACTIVITY_COLUMN_LAT, lat);
         contentValues.put(POSITIONSACTIVITY_COLUMN_LNG, lng);
+        contentValues.put(POSITIONSACTIVITY_COLUMN_ALT, alt);
+        contentValues.put(POSITIONSACTIVITY_COLUMN_SPEED, speed);
+        contentValues.put(POSITIONSACTIVITY_COLUMN_DATETIME, registerTime);
         return db.insert(POSITIONSACTIVITY_TABLE_NAME, null, contentValues);
     }
 
@@ -324,7 +351,10 @@ public class GpsBBDD extends SQLiteOpenHelper {
                 ActivityLocation activityLocation = new ActivityLocation(
                         res.getInt(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_ACTIVTY)),
                         res.getDouble(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_LAT)),
-                        res.getDouble(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_LNG))
+                        res.getDouble(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_LNG)),
+                        res.getDouble(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_ALT)),
+                        res.getDouble(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_SPEED)),
+                        res.getLong(res.getColumnIndex(POSITIONSACTIVITY_COLUMN_DATETIME))
                 );
 
                 array_list.add(activityLocation);

@@ -67,20 +67,11 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
 
     Route mRoute;
 
-
-    Boolean mIsInPause = false;
-    long mTimeWalking;
-    double mDistance;
-
-    TextView mDistanceTV;
-    TextView mTimeWalkingTV;
-
     long mActivityId;
 
     boolean skipStopGps = false;
     GpsStatus mGpsStatus = null;
     Tracker mTracker = null;
-    private NotificationStateManager notificationStateManager;
 
     Button mStartBtn;
 
@@ -112,34 +103,15 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
 
         mGpsStatus = new GpsStatus(this);
 
-        bindGpsTracker();
     }
 
     final View.OnClickListener startButtonClick = new View.OnClickListener() {
         public void onClick(View v) {
             if (mGpsStatus.isEnabled() == false) {
                 startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-            } else if (mTracker.getState() != TrackerState.CONNECTED) {
-                startGps();
-            } else if (mTracker.getState() == TrackerState.CONNECTED) {
-                mGpsStatus.stop(InitActivity.this);
-
-                /**
-                 * unregister receivers
-                 */
-                unregisterStartEventListener();
-
-                /**
-                 * This will start the advancedWorkoutSpinner!
-                 */
-                mTracker.setWorkout(prepareWorkout());
-                mTracker.start();
-
-                skipStopGps = true;
-
+            } else {
                 GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
                 mActivityId = gpsBBDD.insertActivity(mRoute.getId(), "0", 0, new Date());
-
 
                 Intent intent = new Intent(InitActivity.this,
                         RunActivity.class);
@@ -204,7 +176,7 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
 
 
         enableMyLocation();
-        MapUtils.configMap(mMap,true);
+        MapUtils.configMap(mMap,true,this);
 
         MapUtils.drawPrimaryLinePath(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
     }
@@ -385,24 +357,12 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         updateView();
     }
 
-    void bindGpsTracker() {
-        // Establish a connection with the service. We use an explicit
-        // class name because we want a specific service implementation that
-        // we know will be running in our own process (and thus won't be
-        // supporting component replacement by other applications).
-        getApplicationContext().bindService(new Intent(this, Tracker.class),
-                mConnection, Context.BIND_ADJUST_WITH_ACTIVITY | Context.BIND_AUTO_CREATE);
-        mIsBound = true;
-    }
 
     private void startGps() {
         Log.e(getClass().getName(), "InitActivity.startGps()");
         if (mGpsStatus != null && !mGpsStatus.isLogging())
             mGpsStatus.start(this);
 
-        if (mTracker != null) {
-            mTracker.connect();
-        }
     }
 
     @Override
@@ -457,11 +417,7 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
     public void onResume() {
         super.onResume();
 
-        if (mIsBound == false || mTracker == null) {
-            bindGpsTracker();
-        } else {
-            onGpsTrackerBound();
-        }
+        onGpsTrackerBound();
         this.updateView();
     }
 

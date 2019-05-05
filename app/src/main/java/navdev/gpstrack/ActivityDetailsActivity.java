@@ -97,9 +97,9 @@ public class ActivityDetailsActivity extends AppCompatActivity {
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 mMap = googleMap;
-                MapUtils.configMap(mMap,false);
+                MapUtils.configMap(mMap,false, ActivityDetailsActivity.this);
                 MapUtils.drawPrimaryLinePath(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
-                MapUtils.drawPrimaryLinePath(mActivity.getLocations(ActivityDetailsActivity.this),mMap,getResources().getColor(R.color.colorAccent));
+                MapUtils.drawPrimaryLinePath(mActivity.getLocations(ActivityDetailsActivity.this),mMap,getResources().getColor(R.color.blueaccent));
             }
         });
 

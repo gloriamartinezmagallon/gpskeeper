@@ -163,9 +163,9 @@ public class ActivityService extends Service {
             }
             lastLocation = currentLocation;
 
-            GpsBBDD gpsBBDD = new GpsBBDD(this);
+            /*GpsBBDD gpsBBDD = new GpsBBDD(this);
             gpsBBDD.insertPositionActivity(mActivityId, currentLocation.latitude, currentLocation.longitude);
-            gpsBBDD.closeDDBB();
+            gpsBBDD.closeDDBB();*/
 
             double distanciaARuta = mRoute.getDistanceto(location);
             if (distanciaARuta >= (double)mUmbraldistancia){

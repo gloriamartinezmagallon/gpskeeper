@@ -1,7 +1,11 @@
 package navdev.gpstrack;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
@@ -10,10 +14,25 @@ import android.widget.TextView;
 
 import navdev.gpstrack.dao.GpsBBDD;
 
+import static navdev.gpstrack.service.TrackerService.ASK_IS_RUNNING;
+import static navdev.gpstrack.service.TrackerService.SEND_IS_RUNNING;
+import static navdev.gpstrack.service.TrackerService.SEND_LAST_LOCATION;
+
 public class LoadingActivity extends AppCompatActivity {
 
     LinearLayout mInfoLl;
     ImageView   bgImg;
+
+    protected BroadcastReceiver receiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive (Context context, Intent intent)
+        {
+            if (intent.getAction().equals(SEND_IS_RUNNING)){
+               //TODO
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,4 +119,10 @@ public class LoadingActivity extends AppCompatActivity {
         return txhours + ":" + txminutes;
     }
 
+    @Override
+    protected void onStart() {
+        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(getApplicationContext());
+        manager.registerReceiver(receiver, new IntentFilter(Intent.ACTION_VIEW));
+        super.onStart();
+    }
 }
