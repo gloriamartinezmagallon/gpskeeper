@@ -70,11 +70,6 @@
             android:label="@string/title_section2" />
 
         <service
-            android:name=".utils.ActivityService"
-            android:exported="false" />
-
-
-        <service
             android:name=".service.TrackerService"
             android:exported="false" />
 

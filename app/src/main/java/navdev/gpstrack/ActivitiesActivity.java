@@ -1,22 +1,22 @@
 package navdev.gpstrack;
 
-import android.content.Intent;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import navdev.gpstrack.adapter.RoutesAdapter;
-import navdev.gpstrack.dao.GpsBBDD;
-import navdev.gpstrack.ent.Activity;
+import navdev.gpstrack.db.ActivitiesViewModel;
+import navdev.gpstrack.db.GpsTrackDB;
+import navdev.gpstrack.db.ActivityDao;
 import navdev.gpstrack.adapter.ActivitiesAdapter;
+import navdev.gpstrack.db.ActivityComplete;
 
 public class ActivitiesActivity extends AppCompatActivity{
 
@@ -25,7 +25,7 @@ public class ActivitiesActivity extends AppCompatActivity{
     private ActivitiesAdapter mAdapter;
     private TextView mEmptyView;
 
-    private ArrayList<Activity> mActivities;
+    private List<ActivityComplete> mActivities;
 
 
     @Override
@@ -43,22 +43,28 @@ public class ActivitiesActivity extends AppCompatActivity{
     private void initListView(){
 
 
+        final ActivitiesViewModel viewModel = ViewModelProviders.of(this).get(ActivitiesViewModel.class);
 
-        GpsBBDD bbdd = new GpsBBDD(this);
-        if (bbdd.numberOfActivities() == 0){
-            setEmptyText(getResources().getString(R.string.emptylistactivities));
-        }else{
+        final LinearLayoutManager llm = new LinearLayoutManager(this);
+        llm.setOrientation(LinearLayoutManager.VERTICAL);
 
-            mActivities = bbdd.getAllActivities();
-
-            mAdapter = new ActivitiesAdapter(this,mActivities);
-            LinearLayoutManager llm = new LinearLayoutManager(this);
-            llm.setOrientation(LinearLayoutManager.VERTICAL);
-            mListView.setLayoutManager(llm);
-            mListView.setAdapter(mAdapter);
-        }
-
-        bbdd.closeDDBB();
+        viewModel.count().observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(@Nullable Integer numOfActivities) {
+                if (numOfActivities == 0){
+                    setEmptyText(getResources().getString(R.string.emptylistactivities));
+                }else{
+                    viewModel.getAllActivities().observe(ActivitiesActivity.this, new Observer<List<ActivityComplete>>() {
+                        @Override
+                        public void onChanged(@Nullable List<ActivityComplete> activityCompletes) {
+                            mAdapter = new ActivitiesAdapter(ActivitiesActivity.this,activityCompletes);
+                            mListView.setLayoutManager(llm);
+                            mListView.setAdapter(mAdapter);
+                        }
+                    });
+                }
+            }
+        });
     }
 
 

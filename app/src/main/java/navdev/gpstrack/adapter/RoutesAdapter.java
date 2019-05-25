@@ -2,29 +2,25 @@ package navdev.gpstrack.adapter;
 
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import navdev.gpstrack.ImportRouteActivity;
 import navdev.gpstrack.R;
 import navdev.gpstrack.RoutedetailsActivity;
-import navdev.gpstrack.ent.Route;
+import navdev.gpstrack.db.Route;
 
 public class RoutesAdapter extends RecyclerView.Adapter<RoutesAdapter.ViewHolder> {
 
-    ArrayList<Route> mRoutes;
+    List<Route> mRoutes;
     Activity mContext;
 
-    public RoutesAdapter(Activity context, ArrayList<Route> itemList) {
+    public RoutesAdapter(Activity context, List<Route> itemList) {
         this.mRoutes = itemList;
         this.mContext = context;
     }
@@ -68,7 +64,7 @@ public class RoutesAdapter extends RecyclerView.Adapter<RoutesAdapter.ViewHolder
                 @Override
                 public void onClick(View v) {
                     Intent newintent = new Intent(mContext, RoutedetailsActivity.class);
-                    newintent.putExtra(RoutedetailsActivity.ID_ROUTE,mRoute.getId());
+                    newintent.putExtra(RoutedetailsActivity.ROUTE,mRoute);
                     mContext.startActivity(newintent);
                 }
             });

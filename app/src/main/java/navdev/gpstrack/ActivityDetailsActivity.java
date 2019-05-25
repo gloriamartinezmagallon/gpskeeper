@@ -2,8 +2,8 @@ package navdev.gpstrack;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -14,47 +14,53 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
-import navdev.gpstrack.dao.GpsBBDD;
-import navdev.gpstrack.ent.ActivityLocation;
-import navdev.gpstrack.ent.Route;
+import io.reactivex.Single;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+import navdev.gpstrack.db.Converters;
+import navdev.gpstrack.db.GpsTrackDB;
+import navdev.gpstrack.db.ActivityDao;
+import navdev.gpstrack.db.ActivityComplete;
+import navdev.gpstrack.db.ActivityLocation;
+import navdev.gpstrack.db.Route;
 import navdev.gpstrack.utils.MapUtils;
 
 public class ActivityDetailsActivity extends AppCompatActivity {
 
-    navdev.gpstrack.ent.Activity mActivity;
+    ActivityComplete mActivity;
     Route mRoute;
     ArrayList<ActivityLocation> mActivityLocations;
+    ActivityDao activityDao;
 
     GoogleMap mMap;
 
-    public static String ID_ACTIVITY ="idActivity";
+    public static String ACTIVITY ="Activity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
-        TextView activityDate = (TextView) findViewById(R.id.activiy_date);
-        TextView activityName = (TextView) findViewById(R.id.activity_name);
-        TextView activityDistance= (TextView) findViewById(R.id.activity_distance);
-        TextView activityTime= (TextView) findViewById(R.id.activity_time);
+        final TextView activityDate = findViewById(R.id.activiy_date);
+        TextView activityName =  findViewById(R.id.activity_name);
+        TextView activityDistance=  findViewById(R.id.activity_distance);
+        TextView activityTime=  findViewById(R.id.activity_time);
 
-        FloatingActionButton fabtrash = (FloatingActionButton) findViewById(R.id.fabtrash);
+        FloatingActionButton fabtrash = findViewById(R.id.fabtrash);
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
 
-        int idActivity = getIntent().getExtras().getInt(ID_ACTIVITY);
+        mActivity = (ActivityComplete) getIntent().getExtras().getSerializable(ACTIVITY);
 
-        GpsBBDD gpsBBDD = new GpsBBDD(this);
-        mActivity = gpsBBDD.getActivityById(idActivity);
 
         if (mActivity == null){
             Toast.makeText(this,R.string.rutanoencontrada,Toast.LENGTH_LONG).show();
-            gpsBBDD.closeDDBB();
             finish();
         }
 
@@ -68,13 +74,25 @@ public class ActivityDetailsActivity extends AppCompatActivity {
                         .setPositiveButton(R.string.si, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                GpsBBDD gpsBBDD = new GpsBBDD(ActivityDetailsActivity.this);
 
-                                gpsBBDD.deleteActivity(mActivity.getId());
 
-                                Toast.makeText(ActivityDetailsActivity.this, getResources().getString(R.string.actividadborrada), Toast.LENGTH_LONG).show();
-                                gpsBBDD.closeDDBB();
-                                finish();
+                                new AsyncTask() {
+                                    @Override
+                                    protected Object doInBackground(Object[] objects) {
+                                        GpsTrackDB.getDatabase(ActivityDetailsActivity.this).activityDao()
+                                                .delete(mActivity.activity);
+                                        return null;
+                                    }
+
+                                    @Override
+                                    protected void onPostExecute(Object o) {
+                                        Toast.makeText(ActivityDetailsActivity.this, getResources().getString(R.string.actividadborrada), Toast.LENGTH_LONG).show();
+                                        finish();
+                                        super.onPostExecute(o);
+                                    }
+                                }.execute();
+
+
                             }
 
                         })
@@ -83,13 +101,17 @@ public class ActivityDetailsActivity extends AppCompatActivity {
             }
         });
 
-        mRoute = mActivity.getRoute(this);
+        mRoute = mActivity.route.get(0);
 
 
-        activityDate.setText(mActivity.getAdddatetoformat());
+        activityDate.setText(Converters.dateToString(mActivity.activity.getAdddate()));
         activityName.setText(mRoute.getName());
-        activityDistance.setText(mActivity.getDistanceKm());
-        activityTime.setText(mActivity.timeTostring());
+        activityDistance.setText(Converters.distanceToString(mActivity.activity.getDistance())+" km");
+        if (mActivity.activity.getTime() == 0){
+            activityTime.setText("No registrado");
+        }else{
+            activityTime.setText(Converters.timeToString(mActivity.activity.getTime()));
+        }
 
 
 
@@ -98,8 +120,8 @@ public class ActivityDetailsActivity extends AppCompatActivity {
             public void onMapReady(GoogleMap googleMap) {
                 mMap = googleMap;
                 MapUtils.configMap(mMap,false, ActivityDetailsActivity.this);
-                MapUtils.drawPrimaryLinePath(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
-                MapUtils.drawPrimaryLinePath(mActivity.getLocations(ActivityDetailsActivity.this),mMap,getResources().getColor(R.color.blueaccent));
+                MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
+                MapUtils.drawPrimaryLinePath(Converters.activityLocationsToLatLngs(mActivity.locations),mMap,getResources().getColor(R.color.blueaccent));
             }
         });
 

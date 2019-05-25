@@ -2,17 +2,14 @@ package navdev.gpstrack;
 
 
 import android.Manifest;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -30,8 +27,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,8 +34,10 @@ import java.util.Date;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import navdev.gpstrack.dao.GpsBBDD;
-import navdev.gpstrack.ent.Route;
+import navdev.gpstrack.db.Converters;
+import navdev.gpstrack.db.GpsTrackDB;
+import navdev.gpstrack.db.RouteDao;
+import navdev.gpstrack.db.Route;
 import navdev.gpstrack.utils.MapUtils;
 import navdev.gpstrack.utils.PermissionUtils;
 
@@ -60,11 +57,15 @@ public class ImportRouteActivity extends AppCompatActivity {
 
     GoogleMap mMap;
 
+    RouteDao mRouteDao;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_import_route);
+
+        mRouteDao = GpsTrackDB.getDatabase(this).routeDao();
 
         mSavefile = findViewById(R.id.first_fab);
 
@@ -94,7 +95,7 @@ public class ImportRouteActivity extends AppCompatActivity {
                 MapUtils.configMap(mMap,false,ImportRouteActivity.this);
 
                 if (mRutaimportada != null)
-                    MapUtils.drawPrimaryLinePath(mRutaimportada.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
+                    MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRutaimportada.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
             }
         });
     }
@@ -144,12 +145,12 @@ public class ImportRouteActivity extends AppCompatActivity {
             }
         }
 
-        Route route = new Route();
-        route.setName(name);
-        route.setAdddate(new Date());
-        route.setUses(0);
-        route.setImported(1);
-        route.setTracks(coords);
+        String track = "";
+        for (int i = 0; i< coords.size(); i++){
+            if (track.length() != 0) track+=" ";
+            track +=coords.get(i);
+        }
+        Route route = new Route(name, new Date(),track, 1);
 
         return route;
     }
@@ -187,26 +188,36 @@ public class ImportRouteActivity extends AppCompatActivity {
 
     private void mostrarRuta(){
 
-        mTextfile.setText(mRutaimportada.getName()+"\n"+mRutaimportada.getDistanceKm());
+        mTextfile.setText(mRutaimportada.getName()+"\n"+Converters.distanceToString(mRutaimportada.getDistance())+"km");
         mSavebtn.setVisibility(View.VISIBLE);
         if (mMap != null)
-            MapUtils.drawPrimaryLinePath(mRutaimportada.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
+            MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRutaimportada.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
     }
 
     private void guardarRuta(){
         if (mRutaimportada == null) return;
-        GpsBBDD gpsBBDD = new GpsBBDD(this);
-        long idresult = gpsBBDD.insertRoute(mRutaimportada.getName(), mRutaimportada.getTracks(), mRutaimportada.getImported(), mRutaimportada.getUses(), mRutaimportada.getAdddate());
-        gpsBBDD.closeDDBB();
-        if (idresult > -1){
-            mRutaimportada.setId(Integer.parseInt(idresult+""));
-            Toast.makeText(this, getResources().getString(R.string.rutaguardada), Toast.LENGTH_LONG).show();
 
-            Intent newintent = new Intent(ImportRouteActivity.this, RoutedetailsActivity.class);
-            newintent.putExtra(RoutedetailsActivity.ID_ROUTE,mRutaimportada.getId());
-            startActivity(newintent);
-            finish();
-        }
+        new AsyncTask() {
+
+            Route mRoute = null;
+            @Override
+            protected Object doInBackground(Object[] objects) {
+                long idRoute = GpsTrackDB.getDatabase(ImportRouteActivity.this).routeDao().insert(mRutaimportada);
+                mRoute = GpsTrackDB.getDatabase(ImportRouteActivity.this).routeDao().findRouteById(idRoute);
+                return null ;
+            }
+
+            @Override
+            protected void onPostExecute(Object o) {
+                Toast.makeText(ImportRouteActivity.this, getResources().getString(R.string.rutaguardada), Toast.LENGTH_LONG).show();
+
+                Intent newintent = new Intent(ImportRouteActivity.this, RoutedetailsActivity.class);
+                newintent.putExtra(RoutedetailsActivity.ROUTE,mRoute);
+                startActivity(newintent);
+                finish();
+            }
+        }.execute();
+
     }
 
 

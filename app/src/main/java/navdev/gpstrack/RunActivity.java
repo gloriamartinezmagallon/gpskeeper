@@ -11,8 +11,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -37,15 +35,17 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
-import navdev.gpstrack.dao.GpsBBDD;
-import navdev.gpstrack.ent.Route;
+import navdev.gpstrack.db.Converters;
+import navdev.gpstrack.db.GpsTrackDB;
+import navdev.gpstrack.db.ActivityDao;
+import navdev.gpstrack.db.RouteDao;
+import navdev.gpstrack.db.Route;
 import navdev.gpstrack.gpsutils.utils.Formatter;
 import navdev.gpstrack.service.TrackerService;
 import navdev.gpstrack.utils.MapUtils;
 import navdev.gpstrack.utils.PausableChronometer;
 import navdev.gpstrack.utils.PermissionUtils;
 
-import static navdev.gpstrack.R.id.distance;
 import static navdev.gpstrack.service.TrackerService.ASK_IS_RUNNING;
 import static navdev.gpstrack.service.TrackerService.LAST_DISTANCE;
 import static navdev.gpstrack.service.TrackerService.LAST_LOCATION;
@@ -81,6 +81,9 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
     boolean inPause = false;
     float currentZoom = 17f;
 
+    RouteDao mRouteDao;
+    ActivityDao mActivityDao;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,11 +93,11 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
 
         formatter = new Formatter(this);
 
-        if (!getIntent().getExtras().containsKey(RoutedetailsActivity.ID_ROUTE)
+        if (!getIntent().getExtras().containsKey(RoutedetailsActivity.ROUTE)
         || !getIntent().getExtras().containsKey(RoutedetailsActivity.ID_ACTIVITY)){
             finish();
         }
-        int idRoute  = getIntent().getExtras().getInt(RoutedetailsActivity.ID_ROUTE);
+        mRoute = (Route) getIntent().getExtras().getSerializable(RoutedetailsActivity.ROUTE);
 
         mActivityId = getIntent().getExtras().getLong(RoutedetailsActivity.ID_ACTIVITY);
 
@@ -104,19 +107,23 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
         manager.registerReceiver(receiverTrackerServiceInfo, new IntentFilter(SEND_IN_PAUSE));
         manager.sendBroadcast(new Intent(ASK_IS_RUNNING));
 
-
-        GpsBBDD gpsBBDD = new GpsBBDD(this);
-        mRoute = gpsBBDD.getRouteById(idRoute);
-        gpsBBDD.closeDDBB();
+        mRouteDao = GpsTrackDB.getDatabase(this).routeDao();
+        mActivityDao = GpsTrackDB.getDatabase(this).activityDao();
 
         if (mRoute == null){
-            Toast.makeText(this,R.string.rutanoencontrada,Toast.LENGTH_LONG).show();
+            Toast.makeText(RunActivity.this,R.string.rutanoencontrada,Toast.LENGTH_LONG).show();
             finish();
+            return;
         }
+
 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(RunActivity.this);
+
+
+
+
 
         mTimeWalkingTV = findViewById(R.id.timeWalking);
         mDistanceTV = findViewById(R.id.distance);
@@ -180,13 +187,9 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
     }
 
     private void cerrarActividad(){
-        int tiempotext = mTimeWalkingTV.getTime();
 
         mTimeWalkingTV.stop();
         stopService(serviceIntent);
-
-        GpsBBDD gpsBBDD = new GpsBBDD(RunActivity.this);
-        gpsBBDD.updateActivity(mActivityId, distance+"", tiempotext);
 
         Intent intent = new Intent(getApplicationContext(), ActivitiesActivity.class);
         startActivity(intent);
@@ -202,7 +205,7 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
         enableMyLocation();
         MapUtils.configMap(mMap,true,this);
 
-        MapUtils.drawPrimaryLinePathToRun(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.blueaccent));
+        MapUtils.drawPrimaryLinePathToRun(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.blueaccent));
 
 
         mMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {

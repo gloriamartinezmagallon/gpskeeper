@@ -3,6 +3,7 @@ package navdev.gpstrack;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -15,47 +16,47 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
-import navdev.gpstrack.dao.GpsBBDD;
-import navdev.gpstrack.ent.Route;
+import navdev.gpstrack.db.Converters;
+import navdev.gpstrack.db.GpsTrackDB;
+import navdev.gpstrack.db.RouteDao;
+import navdev.gpstrack.db.Route;
 import navdev.gpstrack.utils.MapUtils;
 
 public class RoutedetailsActivity extends AppCompatActivity {
 
-    public static String ID_ROUTE = "routeId";
+    public static String ROUTE = "route";
     public static String ID_ACTIVITY = "activityID";
     private Route mRoute = null;
     GoogleMap mMap;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_routedetails);
 
-        int idRoute = getIntent().getExtras().getInt(ID_ROUTE);
+        mRoute = (Route) getIntent().getExtras().getSerializable(ROUTE);
 
-        GpsBBDD gpsBBDD = new GpsBBDD(this);
-        mRoute = gpsBBDD.getRouteById(idRoute);
-        gpsBBDD.closeDDBB();
-
-        if (mRoute == null){
-            Toast.makeText(this,R.string.rutanoencontrada,Toast.LENGTH_LONG).show();
+        if (mRoute == null) {
+            Toast.makeText(RoutedetailsActivity.this, R.string.rutanoencontrada, Toast.LENGTH_LONG).show();
             finish();
         }
-        final EditText route_name = (EditText) findViewById(R.id.route_name);
+
+        final EditText route_name = findViewById(R.id.route_name);
         route_name.setText(mRoute.getName());
 
-        TextView route_distancia = (TextView) findViewById(R.id.route_distancia);
-        route_distancia.setText(mRoute.getDistanceKm());
+        TextView route_distancia = findViewById(R.id.route_distancia);
+        route_distancia.setText(Converters.distanceToString(mRoute.getDistance())+"km");
 
-        SupportMapFragment mapFragment =
+        final SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 mMap = googleMap;
-                MapUtils.configMap(mMap,false,RoutedetailsActivity.this);
-                MapUtils.drawPrimaryLinePath(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
+                MapUtils.configMap(mMap, false, RoutedetailsActivity.this);
+                MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()), mMap, getResources().getColor(R.color.bluedefault));
             }
         });
 
@@ -66,21 +67,32 @@ public class RoutedetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent newintent = new Intent(RoutedetailsActivity.this, InitActivity.class);
-                newintent.putExtra(RoutedetailsActivity.ID_ROUTE,mRoute.getId());
+                newintent.putExtra(RoutedetailsActivity.ROUTE,mRoute);
                 startActivity(newintent);
                 finish();
             }
         });
 
-        FloatingActionButton fabsave = (FloatingActionButton) findViewById(R.id.fabsave);
+        FloatingActionButton fabsave = findViewById(R.id.fabsave);
         fabsave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mRoute.setName(route_name.getText().toString());
-                GpsBBDD gpsBBDD = new GpsBBDD(RoutedetailsActivity.this);
-                gpsBBDD.updateRoute(mRoute.getId(), mRoute.getName(), mRoute.getTracks(), mRoute.getImported(), mRoute.getUses(), mRoute.getAdddate());
-                gpsBBDD.closeDDBB();
-                Toast.makeText(RoutedetailsActivity.this, getResources().getString(R.string.rutaguardada), Toast.LENGTH_LONG).show();
+                final String routeName = route_name.getText().toString();
+                new AsyncTask() {
+                    @Override
+                    protected Object doInBackground(Object[] objects) {
+                        mRoute.setName(routeName);
+                        GpsTrackDB.getDatabase(RoutedetailsActivity.this).routeDao().update(mRoute);
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Object o) {
+                        Toast.makeText(RoutedetailsActivity.this, getResources().getString(R.string.rutaguardada), Toast.LENGTH_LONG).show();
+                        super.onPostExecute(o);
+                    }
+                }.execute();
+
             }
         });
 
@@ -96,13 +108,21 @@ public class RoutedetailsActivity extends AppCompatActivity {
                         .setPositiveButton(R.string.si, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                GpsBBDD gpsBBDD = new GpsBBDD(RoutedetailsActivity.this);
 
-                                gpsBBDD.deleteRoute(mRoute.getId());
+                                new AsyncTask() {
+                                    @Override
+                                    protected Object doInBackground(Object[] objects) {
+                                        GpsTrackDB.getDatabase(RoutedetailsActivity.this).routeDao().delete(mRoute);
+                                        return null;
+                                    }
 
-                                Toast.makeText(RoutedetailsActivity.this, getResources().getString(R.string.rutaborrada), Toast.LENGTH_LONG).show();
-                                gpsBBDD.closeDDBB();
-                                irListadoRutas();
+                                    @Override
+                                    protected void onPostExecute(Object o) {
+                                        Toast.makeText(RoutedetailsActivity.this, getResources().getString(R.string.rutaborrada), Toast.LENGTH_LONG).show();
+                                        irListadoRutas();
+                                        super.onPostExecute(o);
+                                    }
+                                }.execute();
                             }
 
                         })

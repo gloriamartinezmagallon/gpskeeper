@@ -1,10 +1,14 @@
 package navdev.gpstrack;
 
+import android.annotation.SuppressLint;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -12,16 +16,34 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import navdev.gpstrack.dao.GpsBBDD;
+import com.google.android.gms.maps.model.LatLng;
 
-import static navdev.gpstrack.service.TrackerService.ASK_IS_RUNNING;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+import navdev.gpstrack.db.ActivitiesStatistics;
+import navdev.gpstrack.db.ActivitiesViewModel;
+import navdev.gpstrack.db.Activity;
+import navdev.gpstrack.db.ActivityComplete;
+import navdev.gpstrack.db.ActivityLocation;
+import navdev.gpstrack.db.Converters;
+import navdev.gpstrack.db.GpsTrackDB;
+import navdev.gpstrack.db.ActivityDao;
+import navdev.gpstrack.db.RouteDao;
+import navdev.gpstrack.utils.MapUtils;
+
 import static navdev.gpstrack.service.TrackerService.SEND_IS_RUNNING;
-import static navdev.gpstrack.service.TrackerService.SEND_LAST_LOCATION;
 
 public class LoadingActivity extends AppCompatActivity {
 
     LinearLayout mInfoLl;
     ImageView   bgImg;
+
+    ActivityDao mActivityDao;
+    RouteDao mRouteDao;
 
     protected BroadcastReceiver receiver = new BroadcastReceiver()
     {
@@ -39,8 +61,11 @@ public class LoadingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_loading);
 
-        bgImg = (ImageView) findViewById(R.id.imageView);
-        mInfoLl = (LinearLayout) findViewById(R.id.infoLl);
+        mActivityDao = GpsTrackDB.getDatabase(this).activityDao();
+        mRouteDao = GpsTrackDB.getDatabase(this).routeDao();
+
+        bgImg = findViewById(R.id.imageView);
+        mInfoLl = findViewById(R.id.infoLl);
 
         bgImg.setVisibility(View.VISIBLE);
         mInfoLl.setVisibility(View.GONE);
@@ -51,44 +76,75 @@ public class LoadingActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         getInfoBBDD();
-        bgImg.setVisibility(View.GONE);
-        mInfoLl.setVisibility(View.VISIBLE);
     }
 
+    private void checkAllActivities(ActivitiesViewModel viewModel ){
+        viewModel.getAllActivities().observe(this, new Observer<List<ActivityComplete>>() {
+            @Override
+            public void onChanged(@Nullable List<ActivityComplete> activityCompletes) {
+                for(ActivityComplete ac: activityCompletes){
+                    if (ac.activity.getDistance() == 0 && ac.locations.size() > 0 && ac.locations.get(0).getRegisterTime().getTime() == 0){
+                        int distance = 0;
+                        LatLng antLoc = null;
+                        for (ActivityLocation loc: ac.locations){
+                            LatLng location = new LatLng(loc.getLatitud(), loc.getLongitud());
+                            if (antLoc != null){
+                                distance += MapUtils.distanceBetween(location,antLoc);
+                            }
+                            antLoc = location;
+                        }
+
+                        ac.activity.setDistance(distance);
+
+                        final Activity activity = ac.activity;
+                        new Thread(new Runnable() {
+                            public void run() {
+                                mActivityDao.update(activity);
+                            }
+                        }).start();
+                    }
+                }
+            }
+        });
+    }
+
+    @SuppressLint("CheckResult")
     private void getInfoBBDD(){
-        GpsBBDD gpsBBDD = new GpsBBDD(this);
 
-        int numKms = gpsBBDD.numberOfkm();
-        TextView kmsalltimeTV = (TextView) findViewById(R.id.kmsalltime);
-        kmsalltimeTV.setText(numKms+" "+getResources().getString(R.string.kmsalltime));
-
-        int numKmsthismonth = gpsBBDD.numberOfkmthismonth();
-        TextView numkmthismonthTV = (TextView) findViewById(R.id.numkmthismonth);
-        numkmthismonthTV.setText(numKmsthismonth+" ");
+        ActivitiesViewModel viewModel = ViewModelProviders.of(this).get(ActivitiesViewModel.class);
 
 
-        int numTime = gpsBBDD.numberOftime();
-        TextView timealltimeTV = (TextView) findViewById(R.id.timealltime);
-        timealltimeTV.setText(timeTostring(numTime)+" "+getResources().getString(R.string.timealltime));
+        checkAllActivities(viewModel);
 
-        int numTimethismonth = gpsBBDD.numberOftimethismonth();
-        TextView numtimethismonthTV = (TextView) findViewById(R.id.numtimethismonth);
-        numtimethismonthTV.setText(timeTostring(numTimethismonth));
+        final TextView kmsalltimeTV = findViewById(R.id.kmsalltime);
+        final TextView numkmthismonthTV = findViewById(R.id.numkmthismonth);
+        final TextView timealltimeTV = findViewById(R.id.timealltime);
+        final TextView numtimethismonthTV = findViewById(R.id.numtimethismonth);
+        final TextView numactivitiesTV = findViewById(R.id.numactivities);
+        final TextView numactivitiesthismonthTV = findViewById(R.id.numactivitiesthismonth);
+        viewModel.getStatitics(Converters.getFirstDateOfCurrentMonth()).observe(this, new Observer<ActivitiesStatistics>() {
+            @Override
+            public void onChanged(@Nullable ActivitiesStatistics statistics) {
+                kmsalltimeTV.setText(Converters.distanceToString(statistics.numKms) + " " + getResources().getString(R.string.kmsalltime));
+                numkmthismonthTV.setText(Converters.distanceToString(statistics.numKmFromDate));
 
-        int numRoutes = gpsBBDD.numberOfRoutes();
-        TextView numroutesTV = (TextView) findViewById(R.id.numroutes);
-        numroutesTV.setText(numRoutes+"");
+                timealltimeTV.setText(timeTostring(statistics.numTime)+" "+getResources().getString(R.string.timealltime));
+                numtimethismonthTV.setText(timeTostring(statistics.numTimeFromDate));
 
+                numactivitiesthismonthTV.setText(Converters.numToString(statistics.numActivitiesFromDate));
+                numactivitiesTV.setText(getResources().getString(R.string.activitiesthismonth)+" "+Converters.numToString(statistics.numActivities));
 
-        int numActivities = gpsBBDD.numberOfActivities();
-        TextView numactivitiesTV = (TextView) findViewById(R.id.numactivities);
-        numactivitiesTV.setText(" "+getResources().getString(R.string.activitiesthismonth)+" "+numActivities);
-
-        int numActivitiesthismonth = gpsBBDD.numberOfActivitiesthismonth();
-        TextView numactivitiesthismonthTV = (TextView) findViewById(R.id.numactivitiesthismonth);
-        numactivitiesthismonthTV.setText((numActivitiesthismonth+""));
-
-        gpsBBDD.closeDDBB();
+                bgImg.setVisibility(View.GONE);
+                mInfoLl.setVisibility(View.VISIBLE);
+            }
+        });
+        final TextView numroutesTV = findViewById(R.id.numroutes);
+        mRouteDao.numOfRoutes().observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(@Nullable Integer numOfRoutes) {
+                numroutesTV.setText(Converters.numToString(numOfRoutes));
+            }
+        });
     }
 
     public void showActivities(View v){
@@ -125,4 +181,5 @@ public class LoadingActivity extends AppCompatActivity {
         manager.registerReceiver(receiver, new IntentFilter(Intent.ACTION_VIEW));
         super.onStart();
     }
+
 }

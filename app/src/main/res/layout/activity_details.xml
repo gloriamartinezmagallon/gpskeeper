@@ -82,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:layout_weight="1"
-                android:textAlignment="center"
+                android:gravity="center"
                 android:text="@string/sinruta"
                 android:id="@+id/activity_distance"/>
             <TextView
@@ -91,7 +91,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:layout_weight="1"
                 android:text="@string/sinruta"
-                android:textAlignment="center"
+                android:gravity="center"
                 android:id="@+id/activity_time"/>
         </LinearLayout>
 

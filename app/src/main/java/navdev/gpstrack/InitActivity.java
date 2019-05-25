@@ -11,6 +11,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -27,7 +28,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -37,9 +37,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import java.util.Date;
 import java.util.Locale;
 
-import navdev.gpstrack.dao.GpsBBDD;
-import navdev.gpstrack.ent.Route;
-import navdev.gpstrack.gpsutils.notifications.NotificationStateManager;
+import navdev.gpstrack.db.Converters;
+import navdev.gpstrack.db.GpsTrackDB;
+import navdev.gpstrack.db.ActivityDao;
+import navdev.gpstrack.db.RouteDao;
+import navdev.gpstrack.db.Activity;
+import navdev.gpstrack.db.Route;
 import navdev.gpstrack.gpsutils.tracker.GpsInformation;
 import navdev.gpstrack.gpsutils.tracker.GpsStatus;
 import navdev.gpstrack.gpsutils.tracker.Tracker;
@@ -75,20 +78,19 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
 
     Button mStartBtn;
 
+    RouteDao mRouteDao;
+    ActivityDao mActivityDao;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_init);
 
-        int idRoute  = getIntent().getExtras().getInt(RoutedetailsActivity.ID_ROUTE);
+        mRoute  = (Route) getIntent().getExtras().getSerializable(RoutedetailsActivity.ROUTE);
 
 
-        GpsBBDD gpsBBDD = new GpsBBDD(this);
-        mRoute = gpsBBDD.getRouteById(idRoute);
-        gpsBBDD.closeDDBB();
-
-        if (mRoute == null){
-            Toast.makeText(this,R.string.rutanoencontrada,Toast.LENGTH_LONG).show();
+        if (mRoute == null) {
+            Toast.makeText(InitActivity.this, R.string.rutanoencontrada, Toast.LENGTH_LONG).show();
             finish();
         }
 
@@ -110,16 +112,28 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
             if (mGpsStatus.isEnabled() == false) {
                 startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
             } else {
-                GpsBBDD gpsBBDD = new GpsBBDD(InitActivity.this);
-                mActivityId = gpsBBDD.insertActivity(mRoute.getId(), "0", 0, new Date());
 
-                Intent intent = new Intent(InitActivity.this,
-                        RunActivity.class);
+                new AsyncTask() {
+                    @Override
+                    protected Object doInBackground(Object[] objects) {
+                        Activity activity = new Activity(mRoute.getId(),0,0,new Date());
+                        mActivityId = GpsTrackDB.getDatabase(InitActivity.this).activityDao().insert(activity);
 
-                intent.putExtra(RoutedetailsActivity.ID_ROUTE,mRoute.getId());
-                intent.putExtra(RoutedetailsActivity.ID_ACTIVITY,mActivityId);
-                InitActivity.this.startActivityForResult(intent, 112);
-                finish();
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Object o) {
+
+                        Intent intent = new Intent(InitActivity.this,
+                                RunActivity.class);
+
+                        intent.putExtra(RoutedetailsActivity.ROUTE, mRoute);
+                        intent.putExtra(RoutedetailsActivity.ID_ACTIVITY, mActivityId);
+                        InitActivity.this.startActivityForResult(intent, 112);
+                        finish();
+                    }
+                }.execute();
                 return;
             }
             updateView();
@@ -178,7 +192,7 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         enableMyLocation();
         MapUtils.configMap(mMap,true,this);
 
-        MapUtils.drawPrimaryLinePath(mRoute.getTracksLatLng(),mMap,getResources().getColor(R.color.bluedefault));
+        MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
     }
 
     private void enableMyLocation() {
