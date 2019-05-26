@@ -38,8 +38,8 @@ public class Converters {
     }
 
     public static String timeToString(Integer time) {
-        int hours = time / 60; //since both are ints, you get an int
-        int minutes = time % 60;
+        int hours = time / 3600; //segundos a horas
+        int minutes = (time/60) % 60;
         return String.format("%dh %02dm", hours, minutes);
     }
 
@@ -52,6 +52,17 @@ public class Converters {
                 latLngs.add(new LatLng(Double.parseDouble(latLng[1]),Double.parseDouble(latLng[0])));
         }
         return latLngs;
+    }
+
+    public static ArrayList<Double> stringToAlts(String coords) {
+        String[] coordsArray = coords.split(" ");
+        ArrayList<Double> alts = new ArrayList<>();
+        for (String c: coordsArray){
+            String[] latLng = c.split(",");
+            if (latLng.length >= 3)
+                alts.add(Double.parseDouble(latLng[2]));
+        }
+        return alts;
     }
 
     public static ArrayList<LatLng> activityLocationsToLatLngs(List<ActivityLocation> latlngs) {

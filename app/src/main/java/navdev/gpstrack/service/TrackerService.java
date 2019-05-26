@@ -22,16 +22,22 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
+import java.util.ArrayList;
 import java.util.Date;
 
+import navdev.gpstrack.BuildConfig;
 import navdev.gpstrack.R;
 import navdev.gpstrack.RoutedetailsActivity;
 import navdev.gpstrack.RunActivity;
+import navdev.gpstrack.db.ActivityComplete;
+import navdev.gpstrack.db.Converters;
 import navdev.gpstrack.db.GpsTrackDB;
 import navdev.gpstrack.db.ActivityDao;
 import navdev.gpstrack.db.Activity;
 import navdev.gpstrack.db.ActivityLocation;
+import navdev.gpstrack.db.Route;
 import navdev.gpstrack.utils.MapUtils;
 
 public class TrackerService extends Service {
@@ -109,58 +115,7 @@ public class TrackerService extends Service {
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
                     final Location location = locationResult.getLastLocation();
-                    if (location != null) {
-                        if (lastLocation != null && lastLocation.getLatitude() == location.getLatitude() &&
-                        lastLocation.getLongitude() == location.getLongitude()){
-                            Log.d(TAG, "location NO update " + location);
-                            if (!inPause){
-                                Intent intent = new Intent(SEND_IN_PAUSE);
-                                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-                                inPause = true;
-                            }
-                        }else{
-                            if (inPause){
-                                inPause = false;
-                            }
-                            Log.d(TAG, "location update " + location);
-                            if (lastLocation != null)
-                                distance += MapUtils.distanceBetween(location,lastLocation);
-                                time += (location.getTime() - lastLocation.getTime())/1000;
-                            Intent intent = new Intent(SEND_LAST_LOCATION);
-                            intent.putExtra(LAST_LOCATION,location);
-                            intent.putExtra(LAST_DISTANCE,distance);
-                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-
-                            mActivity.setDistance((int) Math.round(distance));
-                            mActivity.setTime(time);
-
-                            new AsyncTask() {
-                                @Override
-                                protected Object doInBackground(Object[] objects) {
-                                    mActivityDao.update(mActivity);
-                                    return null;
-                                }
-                            }.execute();
-
-                            lastLocation = location;
-                        }
-
-                        new AsyncTask() {
-                            @Override
-                            protected Object doInBackground(Object[] objects) {
-                                mActivityDao.insertLocation(new ActivityLocation(mActivityId,
-                                        location.getLatitude(),
-                                        location.getLongitude(),
-                                        location.getAltitude(),
-                                        (double) location.getSpeed(),
-                                        new Date(location.getTime())));
-                                return null;
-                            }
-                        }.execute();
-
-
-
-                    }
+                    checkLocation(location);
                 }
             }, null);
         }
@@ -172,26 +127,131 @@ public class TrackerService extends Service {
         super.onDestroy();
     }
 
+    private void checkLocation(final Location location){
+        if (location != null) {
+            if (lastLocation != null && lastLocation.getLatitude() == location.getLatitude() &&
+                    lastLocation.getLongitude() == location.getLongitude()){
+                Log.d(TAG, "location NO update " + location);
+                if (!inPause){
+                    Intent intent = new Intent(SEND_IN_PAUSE);
+                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+                    inPause = true;
+                }
+            }else{
+                if (inPause){
+                    inPause = false;
+                }
+                Log.d(TAG, "location update " + location);
+                if (lastLocation != null) {
+                    distance += MapUtils.distanceBetween(location, lastLocation);
+                    time += (location.getTime() - lastLocation.getTime()) / 1000;
+                }
+                Intent intent = new Intent(SEND_LAST_LOCATION);
+                intent.putExtra(LAST_LOCATION,location);
+                intent.putExtra(LAST_DISTANCE,distance);
+                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+
+                mActivity.setDistance((int) Math.round(distance));
+                mActivity.setTime(time);
+
+                new AsyncTask() {
+                    @Override
+                    protected Object doInBackground(Object[] objects) {
+                        mActivityDao.update(mActivity);
+                        return null;
+                    }
+                }.execute();
+
+                lastLocation = location;
+            }
+
+            new AsyncTask() {
+                @Override
+                protected Object doInBackground(Object[] objects) {
+                    mActivityDao.insertLocation(new ActivityLocation(mActivityId,
+                            location.getLatitude(),
+                            location.getLongitude(),
+                            location.getAltitude(),
+                            (double) location.getSpeed(),
+                            new Date(location.getTime())));
+                    return null;
+                }
+            }.execute();
+
+
+
+        }
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         if (intent.getExtras().containsKey(RoutedetailsActivity.ID_ACTIVITY)){
-            mActivityId = intent.getIntExtra(RoutedetailsActivity.ID_ACTIVITY,0);
+            mActivityId = (int) intent.getLongExtra(RoutedetailsActivity.ID_ACTIVITY,0l);
         }
 
+
         mActivityDao = GpsTrackDB.getDatabase(this).activityDao();
+        new AsyncTask() {
 
-        mActivity = mActivityDao.findActivyById(mActivityId).activity;
+            ActivityComplete activityComplete;
+            @Override
+            protected Object doInBackground(Object[] objects) {
+                activityComplete = mActivityDao.findActivyById(mActivityId);
+                mActivity = activityComplete.activity;
+                return null;
+            }
 
-        buildNotification();
+            @Override
+            protected void onPostExecute(Object o) {
 
-        requestLocationUpdates();
+                buildNotification();
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiverAskIsRunning, new IntentFilter(ASK_IS_RUNNING));
+                if (BuildConfig.DEBUG) {
+                    requestLocationUpdates();
+                    /*new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            simulateLocationUpdates(activityComplete.route.get(0));
+                        }
+                    }).start();*/
+
+                }else{
+                    requestLocationUpdates();
+                }
+
+                LocalBroadcastManager.getInstance(TrackerService.this).registerReceiver(receiverAskIsRunning, new IntentFilter(ASK_IS_RUNNING));
+                super.onPostExecute(o);
+            }
+        }.execute();
+
+
         //LocalBroadcastManager.getInstance(this).sendBroadcastSync(new Intent(SEND_IS_RUNNING));
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
+    }
+
+    private void simulateLocationUpdates(Route route){
+
+        ArrayList<LatLng> latLngs = Converters.stringToLatLngs(route.getTracks());
+        ArrayList<Double> alts = Converters.stringToAlts(route.getTracks());
+
+        for (int i = 0; i < latLngs.size(); i++){
+            try{
+                Thread.sleep(1000*10);
+
+                Location location = new Location("");
+                location.setLatitude(latLngs.get(i).latitude);
+                location.setLongitude(latLngs.get(i).longitude);
+                location.setAltitude(alts.get(i));
+                location.setTime(new Date().getTime());
+                location.setSpeed(25);
+
+                checkLocation(location);
+
+            }catch (Exception e){e.printStackTrace();}
+
+        }
     }
 }

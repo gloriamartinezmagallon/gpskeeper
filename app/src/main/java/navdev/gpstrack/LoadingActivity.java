@@ -83,6 +83,7 @@ public class LoadingActivity extends AppCompatActivity {
             @Override
             public void onChanged(@Nullable List<ActivityComplete> activityCompletes) {
                 for(ActivityComplete ac: activityCompletes){
+                    final Activity activity = ac.activity;
                     if (ac.activity.getDistance() == 0 && ac.locations.size() > 0 && ac.locations.get(0).getRegisterTime().getTime() == 0){
                         int distance = 0;
                         LatLng antLoc = null;
@@ -96,12 +97,26 @@ public class LoadingActivity extends AppCompatActivity {
 
                         ac.activity.setDistance(distance);
 
-                        final Activity activity = ac.activity;
+                        if (distance > 0){
+                            new Thread(new Runnable() {
+                                public void run() {
+                                    mActivityDao.update(activity);
+                                }
+                            }).start();
+                        }else{
+                            new Thread(new Runnable() {
+                                public void run() {
+                                    mActivityDao.delete(activity);
+                                }
+                            }).start();
+                        }
+                    }else if (ac.locations.size() == 0){
                         new Thread(new Runnable() {
                             public void run() {
-                                mActivityDao.update(activity);
+                                mActivityDao.delete(activity);
                             }
                         }).start();
+
                     }
                 }
             }
