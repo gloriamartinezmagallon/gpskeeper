@@ -33,6 +33,10 @@ public class Converters {
         return NumberFormat.getNumberInstance(Locale.getDefault()).format(distance/1000);
     }
 
+    public static String speedToString(Double speed) {
+        return NumberFormat.getNumberInstance(Locale.getDefault()).format(speed*3.6)+" km/h";
+    }
+
     public static String numToString(Integer number) {
         return NumberFormat.getNumberInstance(Locale.getDefault()).format(number);
     }
@@ -72,6 +76,10 @@ public class Converters {
             latLngs.add(new LatLng(al.getLatitud(), al.getLongitud()));
         }
         return latLngs;
+    }
+
+    public static LatLng activityLocationToLatLng(ActivityLocation al) {
+        return new LatLng(al.getLatitud(), al.getLongitud());
     }
 
     public static Date getFirstDateOfCurrentMonth() {

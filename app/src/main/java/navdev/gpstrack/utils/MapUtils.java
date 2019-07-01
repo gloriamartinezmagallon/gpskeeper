@@ -9,8 +9,10 @@ import android.support.v4.app.ActivityCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 
@@ -80,6 +82,14 @@ public class MapUtils {
 
         mMap.addPolyline(options);
         final LatLngBounds bounds = b.build();
+
+    }
+
+    public static void  drawPoint(LatLng point, final GoogleMap mMap, int color){
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(point);
+        mMap.addMarker(markerOptions);
 
     }
 }

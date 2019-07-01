@@ -25,7 +25,6 @@ public class ActivitiesActivity extends AppCompatActivity{
     private ActivitiesAdapter mAdapter;
     private TextView mEmptyView;
 
-    private List<ActivityComplete> mActivities;
 
 
     @Override

@@ -1,9 +1,11 @@
 package navdev.gpstrack;
 
 import android.app.AlertDialog;
+import android.arch.lifecycle.Observer;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -14,13 +16,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.concurrent.Callable;
 
-import io.reactivex.Single;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import navdev.gpstrack.db.Converters;
 import navdev.gpstrack.db.GpsTrackDB;
 import navdev.gpstrack.db.ActivityDao;
@@ -33,10 +30,12 @@ public class ActivityDetailsActivity extends AppCompatActivity {
 
     ActivityComplete mActivity;
     Route mRoute;
-    ArrayList<ActivityLocation> mActivityLocations;
-    ActivityDao activityDao;
 
-    GoogleMap mMap;
+
+    ActivityLocation maxSpeed = null;
+    ActivityLocation minSpeed = null;
+
+    GoogleMap mMap = null;
 
     public static String ACTIVITY ="Activity";
 
@@ -50,6 +49,11 @@ public class ActivityDetailsActivity extends AppCompatActivity {
         TextView activityDistance=  findViewById(R.id.activity_distance);
         TextView activityTime=  findViewById(R.id.activity_time);
 
+
+        final TextView activityMaxSpeed=  findViewById(R.id.activity_maxSpeed);
+        final TextView activityMinSpeed=  findViewById(R.id.activity_minSpeed);
+        final TextView activityAvgSpeed=  findViewById(R.id.activity_avgSpeed);
+
         FloatingActionButton fabtrash = findViewById(R.id.fabtrash);
 
         SupportMapFragment mapFragment =
@@ -62,6 +66,39 @@ public class ActivityDetailsActivity extends AppCompatActivity {
         if (mActivity == null){
             Toast.makeText(this,R.string.rutanoencontrada,Toast.LENGTH_LONG).show();
             finish();
+        }
+
+        double avgSpeedSum = 0;
+        double avgSpeedCount = 0;
+        double avgSpeed;
+        for(ActivityLocation activityLocation: mActivity.locations){
+            if (activityLocation.getSpeed() <= 0)
+                continue;
+
+            if (maxSpeed == null){
+                maxSpeed = activityLocation;
+                minSpeed = activityLocation;
+            }else{
+                if (maxSpeed.getSpeed() < activityLocation.getSpeed()){
+                    maxSpeed = activityLocation;
+                }else if (activityLocation.getSpeed() > 0 && minSpeed.getSpeed() > activityLocation.getSpeed()){
+                    minSpeed = activityLocation;
+                }
+            }
+
+            avgSpeedCount++;
+            avgSpeedSum += activityLocation.getSpeed();
+        }
+
+        avgSpeed = avgSpeedSum/avgSpeedCount;
+
+        activityMinSpeed.setText(Converters.speedToString(minSpeed.getSpeed()));
+        activityMaxSpeed.setText(Converters.speedToString(maxSpeed.getSpeed()));
+        activityAvgSpeed.setText(Converters.speedToString(avgSpeed));
+
+        if (mMap != null){
+            MapUtils.drawPoint(Converters.activityLocationToLatLng(maxSpeed),mMap,getResources().getColor(R.color.bluedefault));
+            MapUtils.drawPoint(Converters.activityLocationToLatLng(minSpeed),mMap,getResources().getColor(R.color.blueaccent));
         }
 
         fabtrash.setOnClickListener(new View.OnClickListener() {
@@ -122,6 +159,11 @@ public class ActivityDetailsActivity extends AppCompatActivity {
                 MapUtils.configMap(mMap,false, ActivityDetailsActivity.this);
                 MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
                 MapUtils.drawPrimaryLinePath(Converters.activityLocationsToLatLngs(mActivity.locations),mMap,getResources().getColor(R.color.blueaccent));
+
+                if (maxSpeed != null && minSpeed != null){
+                    MapUtils.drawPoint(Converters.activityLocationToLatLng(maxSpeed),mMap,getResources().getColor(R.color.bluedefault));
+                    MapUtils.drawPoint(Converters.activityLocationToLatLng(minSpeed),mMap,getResources().getColor(R.color.blueaccent));
+                }
             }
         });
 

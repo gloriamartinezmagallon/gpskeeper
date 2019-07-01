@@ -6,6 +6,7 @@ import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Relation;
 import android.arch.persistence.room.Transaction;
 import android.arch.persistence.room.Update;
 
@@ -37,6 +38,7 @@ public interface ActivityDao {
     @Query("SELECT * FROM activities")
     @Transaction
     LiveData<List<ActivityComplete>> getAllActivities();
+
 
 
     @Query("SELECT count(*) FROM activities")
