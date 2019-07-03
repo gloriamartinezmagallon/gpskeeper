@@ -117,8 +117,7 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
         }
 
 
-        SupportMapFragment mapFragment =
-                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(RunActivity.this);
 
 
@@ -139,9 +138,36 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
         });
 
         if (!isSvcRunning){
-            serviceIntent = new Intent(this, TrackerService.class);
-            serviceIntent.putExtra(RoutedetailsActivity.ID_ACTIVITY, mActivityId);
-            startService(serviceIntent);
+
+            if (BuildConfig.DEBUG){
+                new AlertDialog.Builder(this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle("Activar simulación")
+                        .setMessage("¿Seguro?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                serviceIntent = new Intent(RunActivity.this, TrackerService.class);
+                                serviceIntent.putExtra(RoutedetailsActivity.ID_ACTIVITY, mActivityId);
+                                serviceIntent.putExtra(RoutedetailsActivity.ACTIVAR_SIMULACION, true);
+                                startService(serviceIntent);
+                            }
+
+                        })
+                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                serviceIntent = new Intent(RunActivity.this, TrackerService.class);
+                                serviceIntent.putExtra(RoutedetailsActivity.ID_ACTIVITY, mActivityId);
+                                serviceIntent.putExtra(RoutedetailsActivity.ACTIVAR_SIMULACION, false);
+                                startService(serviceIntent);
+                            }
+                        })
+                        .show();
+            }
+
+
         }
         mTimeWalkingTV.start();
     }
@@ -205,7 +231,7 @@ public class RunActivity extends AppCompatActivity implements  GoogleMap.OnMyLoc
         enableMyLocation();
         MapUtils.configMap(mMap,true,this);
 
-        MapUtils.drawPrimaryLinePathToRun(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.blueaccent));
+        MapUtils.drawPrimaryLinePathToRun(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.blueaccent), RunActivity.this);
 
 
         mMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {

@@ -192,7 +192,7 @@ public class InitActivity extends AppCompatActivity  implements  GoogleMap.OnMyL
         enableMyLocation();
         MapUtils.configMap(mMap,true,this);
 
-        MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
+        MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.bluedefault),InitActivity.this);
     }
 
     private void enableMyLocation() {

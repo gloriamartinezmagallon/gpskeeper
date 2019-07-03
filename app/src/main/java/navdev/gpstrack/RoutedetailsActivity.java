@@ -26,6 +26,7 @@ public class RoutedetailsActivity extends AppCompatActivity {
 
     public static String ROUTE = "route";
     public static String ID_ACTIVITY = "activityID";
+    public static String ACTIVAR_SIMULACION = "activarSimulacion";
     private Route mRoute = null;
     GoogleMap mMap;
 
@@ -56,7 +57,7 @@ public class RoutedetailsActivity extends AppCompatActivity {
             public void onMapReady(GoogleMap googleMap) {
                 mMap = googleMap;
                 MapUtils.configMap(mMap, false, RoutedetailsActivity.this);
-                MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()), mMap, getResources().getColor(R.color.bluedefault));
+                MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()), mMap, getResources().getColor(R.color.bluedefault),RoutedetailsActivity.this);
             }
         });
 

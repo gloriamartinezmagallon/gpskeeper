@@ -70,7 +70,7 @@ public class ActivityDetailsActivity extends AppCompatActivity {
 
         double avgSpeedSum = 0;
         double avgSpeedCount = 0;
-        double avgSpeed;
+        double avgSpeed = 0;
         for(ActivityLocation activityLocation: mActivity.locations){
             if (activityLocation.getSpeed() <= 0)
                 continue;
@@ -92,9 +92,12 @@ public class ActivityDetailsActivity extends AppCompatActivity {
 
         avgSpeed = avgSpeedSum/avgSpeedCount;
 
-        activityMinSpeed.setText(Converters.speedToString(minSpeed.getSpeed()));
-        activityMaxSpeed.setText(Converters.speedToString(maxSpeed.getSpeed()));
-        activityAvgSpeed.setText(Converters.speedToString(avgSpeed));
+        if (minSpeed != null)
+            activityMinSpeed.setText(Converters.speedToString(minSpeed.getSpeed()));
+        if (maxSpeed != null)
+            activityMaxSpeed.setText(Converters.speedToString(maxSpeed.getSpeed()));
+        if (avgSpeed > 0)
+            activityAvgSpeed.setText(Converters.speedToString(avgSpeed));
 
         if (mMap != null){
             MapUtils.drawPoint(Converters.activityLocationToLatLng(maxSpeed),mMap,getResources().getColor(R.color.bluedefault));
@@ -157,8 +160,8 @@ public class ActivityDetailsActivity extends AppCompatActivity {
             public void onMapReady(GoogleMap googleMap) {
                 mMap = googleMap;
                 MapUtils.configMap(mMap,false, ActivityDetailsActivity.this);
-                MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
-                MapUtils.drawPrimaryLinePath(Converters.activityLocationsToLatLngs(mActivity.locations),mMap,getResources().getColor(R.color.blueaccent));
+                MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRoute.getTracks()),mMap,getResources().getColor(R.color.bluedefault), ActivityDetailsActivity.this);
+                MapUtils.drawPrimaryLinePath(Converters.activityLocationsToLatLngs(mActivity.locations),mMap,getResources().getColor(R.color.blueaccent),ActivityDetailsActivity.this);
 
                 if (maxSpeed != null && minSpeed != null){
                     MapUtils.drawPoint(Converters.activityLocationToLatLng(maxSpeed),mMap,getResources().getColor(R.color.bluedefault));

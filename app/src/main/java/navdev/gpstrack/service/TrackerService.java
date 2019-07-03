@@ -1,6 +1,9 @@
 package navdev.gpstrack.service;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -10,7 +13,9 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.IBinder;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -59,6 +64,8 @@ public class TrackerService extends Service {
     private int time = 0;
     private int mActivityId;
 
+    private boolean activarSimulacion = false;
+
     private ActivityDao mActivityDao;
     private Activity mActivity;
 
@@ -72,21 +79,23 @@ public class TrackerService extends Service {
         }
     };
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private Notification getNotification() {
+        NotificationChannel channel = new NotificationChannel("gpskeeper_01",
+                getString(R.string.app_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
+        Notification.Builder builder = new Notification.Builder(getApplicationContext(), "gpskeeper_01");
+        builder.setSmallIcon(R.mipmap.ic_notification);
+        return builder.build();
+    }
 
     private void buildNotification() {
-        String stop = "stop";
-        Intent notificationIntent = new Intent(this, RunActivity.class);
-        registerReceiver(stopReceiver, new IntentFilter(stop));
-        PendingIntent broadcastIntent = PendingIntent.getBroadcast(
-                this, 0, notificationIntent, 0);
-        // Create the persistent notification
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.service_msg))
-                .setOngoing(true)
-                .setContentIntent(broadcastIntent)
-                .setSmallIcon(R.mipmap.ic_launcher);
-        startForeground(1, builder.build());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForeground(1, getNotification());
+        }
     }
 
     protected BroadcastReceiver stopReceiver = new BroadcastReceiver() {
@@ -190,6 +199,10 @@ public class TrackerService extends Service {
             mActivityId = (int) intent.getLongExtra(RoutedetailsActivity.ID_ACTIVITY,0l);
         }
 
+        if (intent.getExtras().containsKey(RoutedetailsActivity.ACTIVAR_SIMULACION)){
+            activarSimulacion = intent.getBooleanExtra(RoutedetailsActivity.ACTIVAR_SIMULACION,false);
+        }
+
 
         mActivityDao = GpsTrackDB.getDatabase(this).activityDao();
         new AsyncTask() {
@@ -207,14 +220,13 @@ public class TrackerService extends Service {
 
                 buildNotification();
 
-                if (BuildConfig.DEBUG) {
-                    requestLocationUpdates();
-                    /*new Thread(new Runnable() {
+                if (BuildConfig.DEBUG && activarSimulacion) {
+                    new Thread(new Runnable() {
                         @Override
                         public void run() {
                             simulateLocationUpdates(activityComplete.route.get(0));
                         }
-                    }).start();*/
+                    }).start();
 
                 }else{
                     requestLocationUpdates();
@@ -239,7 +251,7 @@ public class TrackerService extends Service {
 
         for (int i = 0; i < latLngs.size(); i++){
             try{
-                Thread.sleep(1000*10);
+                Thread.sleep(1000*3);
 
                 Location location = new Location("");
                 location.setLatitude(latLngs.get(i).latitude);

@@ -95,7 +95,7 @@ public class ImportRouteActivity extends AppCompatActivity {
                 MapUtils.configMap(mMap,false,ImportRouteActivity.this);
 
                 if (mRutaimportada != null)
-                    MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRutaimportada.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
+                    MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRutaimportada.getTracks()),mMap,getResources().getColor(R.color.bluedefault), ImportRouteActivity.this);
             }
         });
     }
@@ -191,7 +191,7 @@ public class ImportRouteActivity extends AppCompatActivity {
         mTextfile.setText(mRutaimportada.getName()+"\n"+Converters.distanceToString(mRutaimportada.getDistance())+"km");
         mSavebtn.setVisibility(View.VISIBLE);
         if (mMap != null)
-            MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRutaimportada.getTracks()),mMap,getResources().getColor(R.color.bluedefault));
+            MapUtils.drawPrimaryLinePath(Converters.stringToLatLngs(mRutaimportada.getTracks()),mMap,getResources().getColor(R.color.bluedefault),ImportRouteActivity.this);
     }
 
     private void guardarRuta(){
